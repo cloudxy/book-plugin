@@ -1,0 +1,17 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "book-workflow",
+  "version": "0.2.0",
+  "description": "知识蒸馏闭环工作流：cangjie-skill 拆书生成 → svg-diagram 出图 → dsh 四闸逐字回源审计 → 判态放行或回炉。全本地审计，零 API 成本。",
+  "author": {
+    "name": "xuyun"
+  },
+  "keywords": [
+    "distillation",
+    "book",
+    "skills",
+    "audit",
+    "quality-gates",
+    "workflow"
+  ]
+}

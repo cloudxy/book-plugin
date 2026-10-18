@@ -1,0 +1,16 @@
+{
+  "name": "book-workflow",
+  "version": "0.2.0",
+  "description": "知识蒸馏闭环工作流插件：拆书生成 Skill → SVG 出图 → 四闸回源审计（池覆盖/锚一致/证据闭包/图件）→ 判态放行或回炉。审计全本地零 API 成本。",
+  "author": {
+    "name": "xuyun"
+  },
+  "keywords": [
+    "distillation",
+    "book",
+    "skills",
+    "audit",
+    "quality-gates",
+    "workflow"
+  ]
+}

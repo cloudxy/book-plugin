@@ -1,0 +1,1 @@
+../../commands/book-diagram.md
