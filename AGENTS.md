@@ -6,7 +6,8 @@ book-workflow：知识蒸馏闭环工作流插件，v0.2.0。**cangjie-skill 把
 
 ```
 book-workflow/
-├── skills/book-workflow/   唯一入口技能（五阶段编排：自举→蒸馏→出图→桥接→审计判态）
+├── skills/book-workflow/   工作流权威定义（五阶段编排：自举→蒸馏→出图→桥接→审计判态）
+├── skills/book*/          book / book-audit / book-diagram 快捷技能，转到 commands/
 ├── commands/               三个斜杠命令：book（全流程）、book-audit（只审计）、book-diagram（只出图）
 ├── bridge/                 桥接器与审计入口：cangjie_to_dsh.py / run_audit.py / check_diagrams.py
 ├── scripts/bootstrap.py    按工作区自举（.venv + dsh 闸门套装，幂等）
@@ -14,23 +15,27 @@ book-workflow/
 ├── tests/                  e2e 自证（12 项断言：正向绿 + 六组篡改必红）与合成样例 fixtures
 ├── tools/ .dsh/            闸门套装（bootstrap 装入本工作区的运行件，可重建）
 ├── books/ .work/           蒸馏产物与审计任务（私有，不进远端）
-├── .claude/ .agents/       各 CLI 项目级软链 → 仓内 skills/commands
+├── .claude/ .agents/ .grok/ 各 CLI 项目级软链 → 仓内 skills/commands
 ├── .zcode-plugin/ .claude-plugin/ plugin.json .agents/plugins/marketplace.json
 │                           打包清单：zcode / claude+grok / 通用 / codex 市场四种宿主格式
 └── Makefile README.md      开发入口（doctor/e2e/bridge/audit/compile）与工作流文档
 ```
 
-## 五端接入（全部项目级，改文件即时生效）
+## 五端接入（全部项目级，共用仓内源文件）
 
 | CLI | 挂载点 | 入口 |
 |---|---|---|
 | claude | `.claude/skills`、`.claude/commands`（软链） | `/book`、`/book-audit`、`/book-diagram` |
-| codex | `.agents/skills`（官方项目级约定） | `/` 菜单技能，或直接描述"拆书/蒸馏并审计" |
-| kimi | `.agents/skills` | `/skill:book-workflow` |
-| grok | `.claude/skills`+`.claude/commands`（claude 兼容）、`.agents/skills` | `/` 菜单命令与技能 |
+| codex | `AGENTS.md` + `.agents/skills` | `$book`、`$book-audit`、`$book-diagram`、`$book-workflow`；`/skills` 查看 |
+| kimi | `AGENTS.md` + `.agents/skills` | `/skill:book`、`/skill:book-audit`、`/skill:book-diagram`、`/skill:book-workflow` |
+| grok | `AGENTS.md` + `.grok/skills`（原生入口） | `/book`、`/book-audit`、`/book-diagram`、`/book-workflow` |
 | zcode | 本目录（`plugins.dirs` 直注册；其他机器可克隆到 `~/.zcode/local-plugins/book-workflow` 再注册该克隆） | `/book`、`/book-audit`、`/book-diagram` |
 
-项目级入口随仓库存在；在相应 CLI 中打开本项目即可使用。跨工作区使用时，技能会先跑 `scripts/bootstrap.py` 自举目标工作区（幂等）。各宿主的命令发现与参数语法以实际会话为准。
+项目级入口随仓库存在；在本目录启动相应 CLI 的新会话，完成宿主首次要求的项目信任后即可使用。四端均可直接描述“拆书/蒸馏并审计”，按 `skills/book-workflow/SKILL.md` 执行。Claude 通过 `CLAUDE.md` 引入本文件。更改入口后开新会话刷新发现结果。
+
+Codex 若显示插件命名空间，按 `/skills` 中的完整名称调用，例如 `$book-workflow:book`（本机当前发现名），仍是仓内同一份技能。
+
+快捷技能仅转到 `commands/`；全部命令先读取主技能，再按全流程／只审计／只出图限定范围。解析软链后定位仓库根，不从 `.agents`、`.claude`、`.grok` 挂载路径推算脚本位置。跨工作区使用时，技能会先跑 `scripts/bootstrap.py` 自举目标工作区（幂等）。
 
 ## 常用意图
 

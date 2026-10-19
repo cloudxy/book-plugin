@@ -10,7 +10,7 @@ metadata:
 
 ## 路径约定（先读这个）
 
-- **插件根（= 仓库根）** = 本 SKILL.md 所在目录的上两级（`skills/book-workflow/` 的 `../../`），记作 `$PLUGIN`。
+- **插件根（= 仓库根）**：先对本 SKILL.md 的实际加载路径解析软链（Python `Path(skill_path).resolve()`），再取 `parents[2]`，记作 `$PLUGIN`。项目入口可能位于 `.agents/skills/`、`.claude/skills/` 或 `.grok/skills/`，不能直接从这些挂载路径向上取两级。解析后须能找到 `$PLUGIN/scripts/bootstrap.py` 和 `$PLUGIN/vendor/`。
 - **工作区** = 用户当前打开的项目根（cwd），记作 `$WS`。蒸馏产物（`books/`、`.work/`、`tools/`、`.dsh/`）全部落在 `$WS`。
 - **桥接/审计脚本不在工作区内**，调用时**必须带 `--ws $WS`**，否则找不到工作区根。
 - 原则：先审计后编译——阶段 5 的 compile 只对判态全绿的 Bundle 做。

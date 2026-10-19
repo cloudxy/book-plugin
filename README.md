@@ -31,10 +31,11 @@ book-workflow/
 │   └── svg-diagram/                  # 出图侧：bybit-exchange/svg-diagram @ c30c9e3（MIT）
 │       ├── SKILL.md                  #   SVG 出图房规（给 Agent 读的绘图规范）
 │       └── tools/svg-lint/           #   零依赖 Node 版 SVG 风格检查器（12 项检查）
-├── skills/book-workflow/SKILL.md     # 唯一入口技能（五阶段编排；五端共用）
+├── skills/book-workflow/SKILL.md     # 工作流权威定义（五阶段编排；五端共用）
+├── skills/book*/SKILL.md            # 三个快捷技能 → commands/，供 Codex/Kimi/Grok 发现
 ├── commands/                         # 斜杠命令：book / book-audit / book-diagram
 ├── AGENTS.md CLAUDE.md               # 五端工作区入口（codex/kimi 读 AGENTS.md）
-├── .claude/ .agents/                 # 各 CLI 项目级软链 → 仓内 skills/commands
+├── .claude/ .agents/ .grok/           # 各 CLI 项目级软链 → 仓内 skills/commands
 ├── .zcode-plugin/ .claude-plugin/ plugin.json .agents/plugins/marketplace.json
 │                                     # 四种宿主清单（zcode / claude+grok / 通用 / codex 市场）
 ├── tools/                            # dsh 闸门套装（init_workspace 装入，100 件）
@@ -51,6 +52,25 @@ book-workflow/
 ├── .dsh/gate-kit/workspace.json      # 闸门工作区配置
 └── .venv/                            # Python 3.14 + PyYAML + PyMuPDF（另需 node 供 svg-lint）
 ```
+
+## 在 Codex / Grok / Kimi / Claude 中直接使用
+
+在仓库根目录启动 `codex`、`grok`、`kimi` 或 `claude` 的新会话，完成宿主首次要求的项目信任。项目入口已随仓库配置，无需再安装插件副本。
+
+| 平台 | 全流程 | 只审计 | 只出图 | 项目技能目录 |
+|---|---|---|---|---|
+| Codex | `$book <原文路径>` | `$book-audit --task <slug>` | `$book-diagram <描述>` | `.agents/skills/` |
+| Grok | `/book <原文路径>` | `/book-audit --task <slug>` | `/book-diagram <描述>` | `.grok/skills/` |
+| Kimi | `/skill:book <原文路径>` | `/skill:book-audit --task <slug>` | `/skill:book-diagram <描述>` | `.agents/skills/` |
+| Claude | `/book <原文路径>` | `/book-audit --task <slug>` | `/book-diagram <描述>` | `.claude/skills/` + `.claude/commands/` |
+
+也可以直接说“拆这本书并审计：<原文路径>”。主技能名为 `book-workflow`；三个快捷技能只转发到同名 `commands/*.md`，保持流程单一来源。上表是 **CLI 对话中的输入**，不要直接粘到 shell 执行。
+
+Codex 若以插件命名空间展示技能，使用 `/skills` 中的完整名称；本机加载结果为 `$book-workflow:book`、`$book-workflow:book-audit`、`$book-workflow:book-diagram` 和 `$book-workflow:book-workflow`，均指向本仓库。
+
+入口缺失时先重开会话：Codex 用 `/skills`，Grok 用 `/skills` 或终端中的 `grok inspect`，Kimi 输入 `/skill:`，Claude 输入 `/` 查看发现结果。Grok 未信任项目时会跳过项目技能与规则，需在交互界面完成项目信任。账号登录沿用各 CLI 已有设置。
+
+发现与调用约定：[OpenAI Docs](https://learn.chatgpt.com/docs/build-skills)、[Grok 官方文档](https://docs.x.ai/build/features/skills-plugins-marketplaces)、[Kimi Code 官方文档](https://moonshotai.github.io/kimi-code/en/customization/skills)、[Claude Code 官方文档](https://code.claude.com/docs/en/skills)。
 
 ## 环境与自检
 

@@ -4,6 +4,8 @@ argument-hint: "[拆 <书名/路径> | 蒸馏 <路径> | 继续 | status | <任�
 skills: book-workflow
 ---
 
-Follow the `book-workflow` skill in **mode: auto**（按用户意图路由到对应阶段：新书从阶段一起步，已有产物则从断点续跑，只审计走 /book-audit）。Preserve this mode while interpreting the arguments.
+先完整读取本命令真实路径（解析软链后）相邻的 `../skills/book-workflow/SKILL.md`，按其中的路径约定定位插件根并自举工作区。
+
+Follow the `book-workflow` skill in **mode: auto**（按用户意图路由到对应阶段：新书从阶段一起步，已有产物则从断点续跑，只审计走 /book-audit）。Preserve this mode while interpreting the arguments. 若宿主未替换下方占位符，以用户本次输入作为参数。
 
 $ARGUMENTS
