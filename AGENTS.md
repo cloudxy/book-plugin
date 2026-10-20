@@ -1,6 +1,6 @@
 # AGENTS.md — book-workflow 工作区
 
-book-workflow：知识蒸馏闭环工作流插件，v0.2.0。**cangjie-skill 把书炼成 Skill（生成）→ svg-diagram 画房规 SVG（出图）→ dsh 三闸+图件闸逐字回源（审计）→ 判态放行或回炉。** 本目录既是蒸馏工作区，也是插件的**开发与编辑现场**——skills/commands/bridge/vendor 就在这里更新；zcode 经 `~/.zcode/cli/config.json` 的 `plugins.dirs` 直接注册本目录加载（改源文件后开新会话即生效，无副本同步）。上游 https://github.com/cloudxy/book-plugin 是唯一共同源；其他机器按需克隆到 `~/.zcode/local-plugins/book-workflow` 并注册该克隆，`git pull` 后开新会话加载更新。
+book-workflow：知识蒸馏闭环工作流插件，v0.2.1。**cangjie-skill 把书炼成 Skill（生成）→ svg-diagram 画房规 SVG（出图）→ dsh 三闸+图件闸逐字回源（审计）→ 判态放行或回炉。** html-css-to-image 0.3.0 是可选栅格出图，无密钥不调用、不进四闸。 本目录既是蒸馏工作区，也是插件的**开发与编辑现场**——skills/commands/bridge/vendor 就在这里更新；zcode 经 `~/.zcode/cli/config.json` 的 `plugins.dirs` 直接注册本目录加载（改源文件后开新会话即生效，无副本同步）。上游 https://github.com/cloudxy/book-plugin 是唯一共同源；其他机器按需克隆到 `~/.zcode/local-plugins/book-workflow` 并注册该克隆，`git pull` 后开新会话加载更新。
 
 ## 目录
 
@@ -9,9 +9,9 @@ book-workflow/
 ├── skills/book-workflow/   工作流权威定义（五阶段编排：自举→蒸馏→出图→桥接→审计判态）
 ├── skills/book*/          book / book-audit / book-diagram 快捷技能，转到 commands/
 ├── commands/               三个斜杠命令：book（全流程）、book-audit（只审计）、book-diagram（只出图）
-├── bridge/                 桥接器与审计入口：cangjie_to_dsh.py / run_audit.py / check_diagrams.py
+├── bridge/                 桥接器与审计入口：cangjie_to_dsh.py / run_audit.py / check_diagrams.py / render_html_image.py
 ├── scripts/bootstrap.py    按工作区自举（.venv + dsh 闸门套装，幂等）
-├── vendor/                 三件随包依赖（自包含）：cangjie-skill v2.5.0-refresh ｜ dsh v4.9.26 ｜ svg-diagram c30c9e3
+├── vendor/                 四件随包依赖（自包含）：cangjie-skill v2.5.0-refresh ｜ dsh v4.9.26 ｜ svg-diagram c30c9e3 ｜ html-css-to-image v0.3.0
 ├── tests/                  e2e 自证（12 项断言：正向绿 + 六组篡改必红）与合成样例 fixtures
 ├── tools/ .dsh/            闸门套装（bootstrap 装入本工作区的运行件，可重建）
 ├── books/ .work/           蒸馏产物与审计任务（私有，不进远端）
@@ -63,6 +63,7 @@ Codex 若显示插件命名空间，按 `/skills` 中的完整名称调用，例
 | cangjie-skill | MIT | 宽松；保留其 LICENSE 与署名即可 |
 | svg-diagram | MIT | 同上 |
 | dsh-distillation-director | **AGPL-3.0** | 允许随仓库整体再分发（完整保留其 LICENSE 与源码）；**不得改动其源码**，除非接受改动部分以 AGPL 开源。本仓库与其边界是**进程级调用**（bridge 调 tools/ 脚本），属聚合而非衍生 |
+| html-css-to-image | MIT | 上游 Python 客户端 0.3.0 快照不改源码；`SKILL.md` 只是本仓库的调用说明。进程级调用 `bridge/render_html_image.py`。无密钥不访问网络，不进四闸 |
 
 ## 私有内容（硬约束）
 

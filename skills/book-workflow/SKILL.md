@@ -2,8 +2,8 @@
 name: book-workflow
 description: 知识蒸馏闭环工作流：把一本书/长视频/播客蒸馏成可执行 Skill（生成），画出房规 SVG 图（出图），再做逐字回源审计与四闸判态（验证），全绿才编译交付。Use when the user says "拆书"/"蒸馏一本书"/"把这本书做成 skill"/"蒸馏后审计"/"distill this book into skills"/"audit the distilled skills"，或要对已有 cangjie 产物跑回源审计/配图。NOT for 单纯书摘要、读后感、作者人设扮演。
 metadata:
-  book-workflow.version: "0.2.0"
-  vendors: cangjie-skill v2.5.0-refresh ｜ dsh-distillation-director v4.9.26 ｜ svg-diagram @ c30c9e3
+  book-workflow.version: "0.2.1"
+  vendors: cangjie-skill v2.5.0-refresh ｜ dsh-distillation-director v4.9.26 ｜ svg-diagram @ c30c9e3 ｜ html-css-to-image v0.3.0
 ---
 
 # book-workflow — 蒸馏 → 出图 → 审计 → 放行/回炉
@@ -27,7 +27,7 @@ cangjie 蒸馏（阶段0-4） → svg 出图（按需） → 桥接（逐字回�
 python3 $PLUGIN/scripts/bootstrap.py $WS
 ```
 
-它建 `$WS/.venv`（Python ≥3.10 + PyYAML + PyMuPDF）、装入 dsh 闸门套装（`$WS/tools/` 与 `$WS/.dsh/`），并体检 node（图件闸的 svg-lint 依赖，缺失时该闸判"不适用"）。之后的命令统一用 `$WS/.venv/bin/python`（下文记作 `$PY`）。
+它建 `$WS/.venv`（Python ≥3.10 + PyYAML + PyMuPDF + html-css-to-image 0.3.0）、装入 dsh 闸门套装（`$WS/tools/` 与 `$WS/.dsh/`），并体检 node（图件闸的 svg-lint 依赖，缺失时该闸判"不适用"）。之后的命令统一用 `$WS/.venv/bin/python`（下文记作 `$PY`）。html-css-to-image 只是可选出图客户端；没有 `HCTI_API_ID` 与 `HCTI_API_KEY` 时不访问网络。
 
 ## 阶段一 — cangjie 蒸馏（生成侧）
 
@@ -52,6 +52,14 @@ python3 $PLUGIN/scripts/bootstrap.py $WS
 ```bash
 node $PLUGIN/vendor/svg-diagram/tools/svg-lint/bin/svg-lint.mjs <图.svg>
 ```
+
+栅格图是另一条可选路径，不进入图件闸，也不写进能力卡的 `resources:`。只在操作者明确要求、且本机已有 `HCTI_API_ID` 与 `HCTI_API_KEY` 时，把**书树以外**的 HTML/CSS 交给：
+
+```bash
+$PY $PLUGIN/bridge/render_html_image.py --html <卡.html> --css <卡.css> --out <图.png> --ws $WS
+```
+
+先读 `$PLUGIN/vendor/html-css-to-image/SKILL.md`。密钥不写进仓库。`--check` 只确认客户端版本，不发起请求。输入若在 `books/` 或 `.work/`，脚本拒绝送出。没有密钥就停在说明，不要改用别的截图库顶替。
 
 ## 阶段二 — 桥接（逐字回源核验）
 
@@ -102,5 +110,6 @@ $PY $PLUGIN/bridge/run_audit.py --task <slug> --ws $WS
 
 - **cangjie-skill**（随包于 `$PLUGIN/vendor/`）：蒸馏方法论与流程的权威定义。
 - **dsh-distillation-director**（同上）：三闸判态的权威实现，本地脚本零 API 成本。
-- **svg-diagram**（同上）：出图房规与 lint。
-- 本技能只做编排与判态收口；上游规范以三个 vendor 的 SKILL.md/README 为准，冲突时以 vendor 原文为准并在此登记偏差。
+- **svg-diagram**（同上）：出图房规与 lint。图件闸只认它。
+- **html-css-to-image**（同上，v0.3.0）：可选栅格出图。审计仍全本地、零 API 成本；这个客户端只有显式出图且密钥齐全时才访问网络。
+- 本技能只做编排与判态收口；上游规范以各 vendor 的 SKILL.md/README 为准，冲突时以 vendor 原文为准并在此登记偏差。svg 与栅格冲突时，以 svg 为审计对象。

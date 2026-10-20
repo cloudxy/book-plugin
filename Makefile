@@ -13,6 +13,8 @@ doctor: gates-selftest
 	else echo "▲ node 缺失：图件闸 svg-lint 判不适用（引用完整性检查不受影响）"; fi
 	@echo "—— dsh 安装态 ——"
 	@$(PY) tools/check_install_state.py || true
+	@echo "—— html-css-to-image（可选出图，无密钥不调用）——"
+	@$(PY) bridge/render_html_image.py --check
 
 gates-selftest:
 	@$(PY) tools/_bandid.py

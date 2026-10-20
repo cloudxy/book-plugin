@@ -1,7 +1,7 @@
 # book-workflow — cangjie × dsh × svg-diagram 知识蒸馏工作流
 
 **cangjie-skill 把书"炼"成 Skill（生成侧），dsh-distillation-director 对炼出来的每一件做"回源验真"（审计侧），svg-diagram 把书里的框架与流程画成符合房规的 SVG 图（出图侧）。**
-本工作区把三者拼成 **蒸馏 → 桥接 → 审计（含图件闸）→ 回炉或放行** 的闭环，全部本地脚本执行，审计侧零 API 成本。
+本工作区把三者拼成 **蒸馏 → 桥接 → 审计（含图件闸）→ 回炉或放行** 的闭环，全部本地脚本执行，审计侧零 API 成本。html-css-to-image 0.3.0 只提供可选栅格出图：有密钥且明确要求时才调用，不进四闸。
 
 > **五端插件**：本仓库既是蒸馏工作区，也是插件本体（ncc-workflow 同款模式）——单一事实源 `skills/`+`commands/`+`bridge/`+`vendor/`，
 > Claude/Codex/Kimi/Grok/ZCode 经项目级挂载点接入，改文件即更新，无副本同步。接入表与维护纪律见 [AGENTS.md](AGENTS.md)。
@@ -28,9 +28,12 @@ book-workflow/
 │   │   ├── SKILL.md                  #   蒸馏元技能（给 Agent 读的流程定义）
 │   │   └── scripts/cangjie.py        #   确定性 CLI（doctor/compile/eval/…）
 │   ├── dsh-distillation-director/    # 审计侧：dsh v4.9.26 发行包（原包存档）
-│   └── svg-diagram/                  # 出图侧：bybit-exchange/svg-diagram @ c30c9e3（MIT）
-│       ├── SKILL.md                  #   SVG 出图房规（给 Agent 读的绘图规范）
-│       └── tools/svg-lint/           #   零依赖 Node 版 SVG 风格检查器（12 项检查）
+│   ├── svg-diagram/                  # 出图侧：bybit-exchange/svg-diagram @ c30c9e3（MIT）
+│   │   ├── SKILL.md                  #   SVG 出图房规（给 Agent 读的绘图规范）
+│   │   └── tools/svg-lint/           #   零依赖 Node 版 SVG 风格检查器（12 项检查）
+│   └── html-css-to-image/            # 可选栅格：官方 Python 客户端 0.3.0（MIT，不改源码）
+│       ├── SKILL.md                  #   调用边界：无密钥不访问网络，不读 books/ 与 .work/
+│       └── dist/*.whl                #   bootstrap 安装的固定 wheel
 ├── skills/book-workflow/SKILL.md     # 工作流权威定义（五阶段编排；五端共用）
 ├── skills/book*/SKILL.md            # 三个快捷技能 → commands/，供 Codex/Kimi/Grok 发现
 ├── commands/                         # 斜杠命令：book / book-audit / book-diagram
@@ -42,6 +45,7 @@ book-workflow/
 ├── bridge/
 │   ├── cangjie_to_dsh.py             # 桥接器：cangjie 产物 → dsh 审计结构 + 逐字回源
 │   ├── check_diagrams.py             # 图件闸：svg 引用完整 + svg-lint 风格合规
+│   ├── render_html_image.py          # 可选：本地 HTML/CSS 栅格出图（无密钥不调用）
 │   └── run_audit.py                  # 审计入口：证据包构建 + 三闸 + 图件闸 + 判态
 ├── scripts/bootstrap.py              # 按工作区自举（.venv + 闸门套装，幂等）
 ├── tests/
@@ -50,7 +54,7 @@ book-workflow/
 ├── books/                            # cangjie 蒸馏工作目录（make new-book 脚手架起手）
 ├── .work/<task>/                     # dsh 审计任务结构（桥接器生成；含判态留痕 audit-verdict.md）
 ├── .dsh/gate-kit/workspace.json      # 闸门工作区配置
-└── .venv/                            # Python 3.14 + PyYAML + PyMuPDF（另需 node 供 svg-lint）
+└── .venv/                            # Python 3.14 + PyYAML + PyMuPDF + html-css-to-image（另需 node 供 svg-lint）
 ```
 
 ## 在 Codex / Grok / Kimi / Claude 中直接使用
@@ -74,7 +78,7 @@ Codex 若以插件命名空间展示技能，使用 `/skills` 中的完整名称
 
 ## 环境与自检
 
-- Python ≥3.10（本工作区用 `.venv`，3.14.4）；`pip install PyYAML PyMuPDF`
+- Python ≥3.10（本工作区用 `.venv`，3.14.4）；`pip install PyYAML PyMuPDF`，以及随包 wheel `html-css-to-image==0.3.0`
 - Node（任意现代版，本机 v25）——图件闸的 svg-lint 依赖；缺失时该闸判"不适用"
 - 一键体检：
 
@@ -105,6 +109,8 @@ make new-book BOOK=<slug> TITLE=<书名>     # 脚手架：books/<slug>/ + PIPEL
 | DIGEST.md / BOOK_OVERVIEW.md 配图 | `books/<slug>/assets/<名>.svg` | `![标题](assets/<名>.svg)` 相对路径 |
 
 画完自查：`make lint-svg FILE=books/<slug>/.cangjie/capabilities/resources/<cap-slug>.svg`
+
+可选栅格图不进上面的落位，也不进图件闸。操作者明确要求、且本机已有 `HCTI_API_ID` 与 `HCTI_API_KEY` 时，用 `bridge/render_html_image.py` 渲书树以外的 HTML/CSS。没有密钥就停。体检：`python bridge/render_html_image.py --check`（不发起请求）。边界见 `vendor/html-css-to-image/SKILL.md`。
 
 ### 阶段二 — 桥接（回源核验）
 
@@ -158,13 +164,13 @@ make audit TASK=<slug>
 
 ## 设计说明与已知边界
 
-- **非原生集成**：三个工具互不知晓；桥接层承担格式契约（cangjie YAML 单元/卡片 R 段 → dsh `### CJ-NNN` 池 + `（`CJ-NNN`：出处）` 引用语法，id 语法由 `_bandid.py` 唯一真源约束）。
+- **非原生集成**：生成、审计、SVG 三个工具互不知晓；桥接层承担格式契约（cangjie YAML 单元/卡片 R 段 → dsh `### CJ-NNN` 池 + `（`CJ-NNN`：出处）` 引用语法，id 语法由 `_bandid.py` 唯一真源约束）。html-css-to-image 同样不参与这套契约。
 - **图件闸遍历用 os.walk**：Python `glob` 的 `**` 按壳规则跳过 `.cangjie` 等点开头目录，会漏掉整棵侧车层（e2e 抓出过这个假绿）。
 - **dsh 宿主层闸门不在射程**：`gate_start.py`（开工自证）、`preflight/postflight` 等面向 DSH 宿主自家蒸馏纪律，在无 DSH 宿主的机器上判"不适用"；本流水线只启用其**内容事实性**三闸。
 - **G-66 的语义局限**："漏没漏重要单元"本质是语义判断；本流水线把它落地为可机器判定的形式（critical/high 必须落 R 层），"什么算 critical"仍由 cangjie 阶段 1.5/1.6 的判定与人工轻确认承担。
 - **图不进引文审计**：SVG 是派生物不是原书引文，回源三闸不管图；图件闸只管"图本身合规 + 引用不断链"，图的**内容正确性**（与正文一致）由出图纪律与人工复核承担。
 - **版权口径**：dsh 侧不含任何书籍原文；桥接产物（`.work/`）含去空白逐字引文仅用于本地审计，cangjie 红线（中文引文 ≤150 字/段）由桥接报告超限警示辅助盯守。最终交付物的版权合规由使用者按原书授权自行判断。
-- **升级**：`vendor/` 下三个包是固定版本存档（cangjie v2.5.0-refresh / dsh v4.9.26 / svg-diagram @ c30c9e3）；升级时替换 vendor 目录后重跑 `init_workspace.py` 与 `make e2e` 回归。
+- **升级**：`vendor/` 下四个包是固定版本存档（cangjie v2.5.0-refresh / dsh v4.9.26 / svg-diagram @ c30c9e3 / html-css-to-image v0.3.0）；升级时替换 vendor 目录后重跑 `init_workspace.py` 与 `make e2e` 回归。栅格客户端升级时同时换 `dist/` 里的 wheel，并保持 `bridge/render_html_image.py` 的版本钉。
 
 ## 快捷入口
 

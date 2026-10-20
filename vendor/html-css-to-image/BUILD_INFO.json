@@ -1,0 +1,21 @@
+{
+  "version": "0.3.0",
+  "license": "MIT",
+  "pypi": "html-css-to-image",
+  "requires_python": ">=3.10",
+  "dependency": "httpx>=0.27,<1",
+  "source_url": "https://github.com/htmlcsstoimage/python-client",
+  "sdist_sha256": "2c7b751b000ad1b57c24c55aef4768282dfcd80ee013a88186718f148419a9de",
+  "wheel": "dist/html_css_to_image-0.3.0-py3-none-any.whl",
+  "wheel_sha256": "bdbc9b1feb43237f81a2e2b3cc24ff4d0859fce03375d9700ca3300fc695aac2",
+  "upstream_files": [
+    "LICENSE",
+    "README.md",
+    "pyproject.toml",
+    "src/",
+    "tests/",
+    "dist/html_css_to_image-0.3.0-py3-none-any.whl"
+  ],
+  "adapter_files": ["SKILL.md", "BUILD_INFO.json"],
+  "note": "LICENSE、README、pyproject.toml、src/、tests/ 与 dist 内 wheel 是上游 0.3.0 快照，不改其源码。SKILL.md 与本文件是 book-workflow 的适配层。运行时由 bootstrap 安装 wheel，进程级调用 bridge/render_html_image.py。无 HCTI_API_ID 与 HCTI_API_KEY 时不访问网络。"
+}
