@@ -10,8 +10,6 @@ books/
 .work/
 tools/
 .dsh/
-防坑要点-TOP20.md
-V3.1全量执行单.md
 
 .git/
 node_modules/

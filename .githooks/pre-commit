@@ -1,6 +1,6 @@
 #!/bin/sh
 # 私有内容守卫：书稿原文、蒸馏产物与可重建运行件绝不进仓库（.gitignore 之外再兜一道）
-blocked='books .work .venv tools .dsh 防坑要点-TOP20.md V3.1全量执行单.md'
+blocked='books .work .venv tools .dsh'
 fail=0
 for f in $(git diff --cached --name-only); do
   for b in $blocked; do
