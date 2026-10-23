@@ -20,6 +20,9 @@ import os
 import subprocess
 import sys
 
+from book_skill_common import (ContractError, bridge_state, procedure_hash,
+                              read_json, source_hashes, write_json)
+
 try:
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 except Exception:
@@ -66,6 +69,19 @@ def main():
     if not os.path.isdir(tdir):
         sys.exit('🔴 任务不存在：%s（先跑 bridge/cangjie_to_dsh.py）' % tdir)
     tools = os.path.join(ws, 'tools')
+    env = dict(ENV, DSH_DISTILL_ROOT=ws, DSH_WORKSPACE_ROOT=ws)
+    try:
+        manifest = read_json(os.path.join(tdir, 'bridge-manifest.json'))
+        inputs = read_json(os.path.join(tdir, 'bridge-inputs.json'))
+        if (inputs.get('valid') is not True
+                or inputs.get('source') != source_hashes(manifest['source'])
+                or inputs.get('procedures') != procedure_hash(manifest['book_dir'])
+                or inputs.get('bridge_state') != bridge_state(tdir)):
+            raise ContractError('桥接输入或审计副本已变更，请重新桥接')
+    except (ContractError, OSError, KeyError) as exc:
+        write_json(os.path.join(tdir, 'audit-result.json'), {'status': 'failed', 'error': str(exc)})
+        print('🔴 %s' % exc)
+        return 1
 
     def script_path(script):
         # tools/* 装在用户工作区；bridge/* 与本入口同目录（HERE 即 bridge 目录本身，勿再拼前缀）
@@ -79,7 +95,7 @@ def main():
         print('\n' + '═' * 72)
         print('▶ %s —— %s' % (label, script))
         print('═' * 72)
-        r = subprocess.run(cmd, env=ENV)
+        r = subprocess.run(cmd, env=env, cwd=ws)
         results.append((label, r.returncode, remedy))
 
     print('\n' + '─' * 72)
@@ -89,8 +105,14 @@ def main():
     for label, rc, _ in results:
         print('  %s %-12s rc=%d' % ('✔' if rc == 0 else '🔴', label, rc))
     verdict = 'PASS' if not reds else 'FAIL(%d)' % len(reds)
+    write_json(os.path.join(tdir, 'audit-result.json'), {
+        'status': 'passed' if not reds else 'failed', 'task': a.task,
+        'source': inputs['source'], 'procedures': inputs['procedures'],
+        'audit_state': bridge_state(tdir, include_evidence=True),
+        'gates': {label: rc for label, rc, _ in results},
+    })
     if not reds:
-        print('\n结论：✔ 全绿放行 —— 可进 cangjie 阶段 5（python vendor/cangjie-skill/scripts/cangjie.py compile …）')
+        print('\n结论：✔ 程序四闸放行 —— 可编译程序依赖；整书思想与口吻另需语义及实际回答验收')
     else:
         print('\n结论：🔴 %d 闸红 —— 按下述去向回炉后重跑桥接与本入口：' % len(reds))
         for label, remedy in reds:

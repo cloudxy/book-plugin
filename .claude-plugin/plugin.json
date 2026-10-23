@@ -1,7 +1,7 @@
 {
   "name": "book-workflow",
-  "version": "0.2.1",
-  "description": "知识蒸馏闭环工作流插件：拆书生成 Skill → SVG 出图 → 四闸回源审计（池覆盖/锚一致/证据闭包/图件）→ 判态放行或回炉。审计全本地零 API 成本。html-css-to-image 0.3.0 为可选栅格出图，无密钥不调用、不进四闸。",
+  "version": "0.3.0",
+  "description": "知识蒸馏工作流：重建书中思想、叙事与口吻，核查来源，构建候选并验证真实回答后交付；程序能力继续经仓颉与四闸核验。机械检查在本地执行，语义评审与行为试答由宿主模型或人工完成。",
   "author": {
     "name": "xuyun"
   },
@@ -11,6 +11,9 @@
     "skills",
     "audit",
     "quality-gates",
-    "workflow"
+    "workflow",
+    "thinking",
+    "narrative",
+    "behavior-evals"
   ]
 }

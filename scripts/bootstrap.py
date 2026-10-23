@@ -129,6 +129,10 @@ def main():
     print('   node：%s%s' % (node or '未找到',
                              '（svg-lint 可用）' if node else '（图件闸 svg-lint 将判不适用）'))
     print('\n下一步（脚本不在工作区内，务必带 --ws）:')
+    print('  先按 skills/book-workflow/SKILL.md 重建思想、叙事与完整范例；不要用桥接替代这一步。')
+    print('  思想核查: %s %s --book-dir %s/books/<slug> --source <原文> --ws %s'
+          % (vpy, os.path.join(plugin, 'bridge', 'thinking_audit.py'), ws, ws))
+    print('  下列桥接/四闸只用于存在程序 Bundle 的书：')
     print('  桥接: %s %s --book-dir %s/books/<slug> --source <原文> --task <slug> --ws %s'
           % (vpy, os.path.join(plugin, 'bridge', 'cangjie_to_dsh.py'), ws, ws))
     print('  审计: %s %s --task <slug> --ws %s'

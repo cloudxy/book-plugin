@@ -1,10 +1,10 @@
 {
   "name": "book-workflow",
-  "version": "0.2.1",
-  "description": "知识蒸馏闭环工作流：cangjie-skill 拆书生成 → svg-diagram 房规出图 → dsh 三闸+图件闸逐字回源审计 → 判态放行或回炉。桥接器给能力卡 R 层引文铸稳定池 id 并逐字回源原始书文；四闸（池覆盖/锚一致/证据闭包/图件）全绿才允许 compile 编译交付，红项按映射表回炉对应阶段。按工作区自举（.venv + 闸门套装），审计全本地零 API 成本；vendor 四件随包自包含（cangjie v2.5.0-refresh / dsh v4.9.26 / svg-diagram c30c9e3 / html-css-to-image v0.3.0，后者仅显式栅格出图且有密钥时调用，不进四闸）。",
+  "version": "0.3.0",
+  "description": "知识蒸馏工作流：重建书中思想、叙事与口吻，核查来源，构建候选并验证真实回答后交付；程序能力继续经仓颉与四闸核验。机械检查在本地执行，语义评审与行为试答由宿主模型或人工完成。",
   "description_i18n": {
-    "en": "Closed-loop book distillation workflow: cangjie-skill generation, svg-diagram house-style figures, then dsh verbatim source-back auditing with four gates (pool coverage, anchor consistency, evidence closure, diagram lint). Bridge mints stable pool ids for every R-layer quote and verifies each verbatim against the original book text. Compile only after all gates pass; red findings route back to the matching stage. Per-workspace bootstrap, fully local audit at zero API cost; four vendors bundled (cangjie v2.5.0-refresh / dsh v4.9.26 / svg-diagram c30c9e3 / html-css-to-image v0.3.0). The image client is opt-in, key-gated, and not a gate.",
-    "zh-CN": "知识蒸馏闭环工作流：cangjie-skill 拆书生成 → svg-diagram 房规出图 → dsh 三闸+图件闸逐字回源审计 → 判态放行或回炉。桥接器给能力卡 R 层引文铸稳定池 id 并逐字回源原始书文；四闸全绿才允许 compile 编译交付，红项按映射表回炉对应阶段。按工作区自举，审计全本地零 API 成本；vendor 四件随包自包含。html-css-to-image 仅显式栅格出图且有密钥时调用，不进四闸。"
+    "en": "Distill a book into source-grounded thinking, narrative voice and worked applications. Build private candidates, evaluate actual answers, then publish the tested payload. Procedural capabilities retain cangjie and the four local gates; semantic review and behavior tests use the host model or human reviewers.",
+    "zh-CN": "知识蒸馏工作流：重建书中思想、叙事与口吻，核查来源，构建候选并验证真实回答后交付；程序能力继续经仓颉与四闸核验。机械检查在本地执行，语义评审与行为试答由宿主模型或人工完成。"
   },
   "author": {
     "name": "xuyun"
@@ -18,7 +18,10 @@
     "svg-diagram",
     "workflow",
     "evidence-closure",
-    "cangjie"
+    "cangjie",
+    "thinking",
+    "narrative",
+    "behavior-evals"
   ],
   "skills": "skills",
   "commands": "commands"

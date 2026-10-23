@@ -1,115 +1,122 @@
 ---
 name: book-workflow
-description: 知识蒸馏闭环工作流：把一本书/长视频/播客蒸馏成可执行 Skill（生成），画出房规 SVG 图（出图），再做逐字回源审计与四闸判态（验证），全绿才编译交付。Use when the user says "拆书"/"蒸馏一本书"/"把这本书做成 skill"/"蒸馏后审计"/"distill this book into skills"/"audit the distilled skills"，或要对已有 cangjie 产物跑回源审计/配图。NOT for 单纯书摘要、读后感、作者人设扮演。
+description: 把书、长视频或播客蒸馏成能运用原作思想推演、保留叙事与口吻的 Skill，并核查来源、实际回答和交付包。用于拆书、蒸馏为 skill、继续任务、补蒸馏思想与文风，或审计和配图；不用于单纯摘要。
 metadata:
-  book-workflow.version: "0.2.1"
+  book-workflow.version: "0.3.0"
   vendors: cangjie-skill v2.5.0-refresh ｜ dsh-distillation-director v4.9.26 ｜ svg-diagram @ c30c9e3 ｜ html-css-to-image v0.3.0
 ---
 
-# book-workflow — 蒸馏 → 出图 → 审计 → 放行/回炉
+# book-workflow
 
-## 路径约定（先读这个）
+让原作思想影响怎样理解问题、形成新判断与接受修正，让叙事和口吻影响认识怎样展开。思想与表达由 book-workflow 联合重建；仓颉负责其中的程序能力。检索用于查证，程序用于具体执行。
 
-- **插件根（= 仓库根）**：先对本 SKILL.md 的实际加载路径解析软链（Python `Path(skill_path).resolve()`），再取 `parents[2]`，记作 `$PLUGIN`。项目入口可能位于 `.agents/skills/`、`.claude/skills/` 或 `.grok/skills/`，不能直接从这些挂载路径向上取两级。解析后须能找到 `$PLUGIN/scripts/bootstrap.py` 和 `$PLUGIN/vendor/`。
-- **工作区** = 用户当前打开的项目根（cwd），记作 `$WS`。蒸馏产物（`books/`、`.work/`、`tools/`、`.dsh/`）全部落在 `$WS`。
-- **桥接/审计脚本不在工作区内**，调用时**必须带 `--ws $WS`**，否则找不到工作区根。
-- 原则：先审计后编译——阶段 5 的 compile 只对判态全绿的 Bundle 做。
+## 路径与工作区
 
-```
-cangjie 蒸馏（阶段0-4） → svg 出图（按需） → 桥接（逐字回源） → 四闸审计 → 全绿 compile 交付
-        ▲                                                        │
-        └────────────────── 回炉（按判态映射） ◀── 红 ────────────┘
-```
-
-## 第 0 步 — 工作区自举（每个工作区一次，幂等）
+解析本文件加载路径的软链，用 `Path(skill_path).resolve().parents[2]` 定位插件根 `$PLUGIN`，确认存在 `scripts/bootstrap.py` 和 `vendor/`。不要从 `.agents`、`.claude`、`.grok` 挂载路径推算。当前用户项目根为 `$WS`，私有材料全部写入其 `books/`、`.work/`。
 
 ```bash
-python3 $PLUGIN/scripts/bootstrap.py $WS
+python3 "$PLUGIN/scripts/bootstrap.py" "$WS"
 ```
 
-它建 `$WS/.venv`（Python ≥3.10 + PyYAML + PyMuPDF + html-css-to-image 0.3.0）、装入 dsh 闸门套装（`$WS/tools/` 与 `$WS/.dsh/`），并体检 node（图件闸的 svg-lint 依赖，缺失时该闸判"不适用"）。之后的命令统一用 `$WS/.venv/bin/python`（下文记作 `$PY`）。html-css-to-image 只是可选出图客户端；没有 `HCTI_API_ID` 与 `HCTI_API_KEY` 时不访问网络。
+后续用 `$WS/.venv/bin/python`，记作 `$PY`；跨工作区的桥接、自有审计与构建均显式传 `--ws "$WS"`。自举幂等；html-css-to-image 无密钥不访问网络。
 
-## 阶段一 — cangjie 蒸馏（生成侧）
+## 选择范围并续跑
 
-先确认输入：**原书文本**（PDF/EPUB/TXT/转写稿路径，没有文本就停下来向用户要，不凭记忆拆书）、书名+作者+出版年、使用目的（学习查阅→single；接入日常/跨书组合→pack）。
+读取原文、书名/作者/版本/译者及用户目的；未知元信息如实登记，没有原文不凭记忆拆书。先读 `books/<slug>/PIPELINE_STATE.md`，保留已验工作与旧安装，按缺失阶段续跑。
 
-然后**完整阅读 `$PLUGIN/vendor/cangjie-skill/SKILL.md` 并严格按它执行**（RIA-TV++ 五阶段：Adler 整书理解 → 5 路并行提取 → 三重验证 → 晋级门 → RIA++ 能力卡 → Zettelkasten → 压力测试）。本工作流要求：
+- 新蒸馏默认交付一个整书入口，包含思想、叙事与口吻、完整范例，以及适用的程序。
+- 用户明确只要原有程序 single/pack 时，使用下述程序路径；已有程序产物不静默迁移或改变原输出选择。
+- 旧书补升级时回读原文，新增思想、表达和范例，重建新候选；不能把全文切片或程序卡自动改名成思想模型。
+- 只审计按 `/book-audit` 范围核查现有材料；只配图按 `/book-diagram` 范围执行。
 
-- 产物落在 `$WS/books/<slug>/`（含 `verified.md`、`candidates/`、`rejected/`、`.cangjie/capabilities/`）；
-- **跑到阶段 4（压力测试）之后、阶段 5（编译交付）之前停下**，先进入本工作流的出图与审计；
-- 保留全部审计轨迹，断点续跑状态（PIPELINE_STATE.md）每阶段更新。
+本地书稿、模型、完整回答和评审是使用数据，不进入远端仓库。
 
-## 阶段 1.5 — 出图（svg-diagram，按需）
+## 一 整书阅读与联合重建
 
-框架/流程/计算类能力卡或 DIGEST 需要配图时，**先读 `$PLUGIN/vendor/svg-diagram/SKILL.md` 的房规**再手绘 SVG（CJK 字体栈、五组语义配色、盒高=字号×3、盒间距≥25px、C/Q 曲线连线、一次画对）。落位：
+读取 [重建思想与叙事](references/distill-thinking.md)，按实际全文建立 overview 与独立覆盖底账，记录核心问题、概念区别、关系、分歧、论证或叙事结构及表达样态。重要思想即使只出现一次，也按其作用核查。
 
-| 场景 | 位置 | 引用方式 |
-|---|---|---|
-| 能力卡配图 | `$WS/books/<slug>/.cangjie/capabilities/resources/<cap-slug>.svg` | 卡片正文写资源名 + Bundle 该能力 `resources:` 声明 |
-| DIGEST/OVERVIEW 配图 | `$WS/books/<slug>/assets/<名>.svg` | `![标题](assets/<名>.svg)` 相对路径 |
+产物：
 
-自查（error 必须清零）：
+```text
+books/<slug>/
+  BOOK_OVERVIEW.md
+  coverage-audit.md
+  thinking/model.yaml       # book-skill/1；连贯 core.text + 命题、关系、思想动作
+  thinking/EXAMPLES.md      # 原书重建、书外应用与条件变体
+  expression/PROFILE.md    # 有来源的叙事与口吻；唯一“运行摘要”
+  evidence/anchors.yaml    # 短引文、版本哈希、定位、上下文与声音层次
+  eval/                    # 题目、真实输出、独立评审；不进入运行包
+```
+
+思想动作写明：看哪些事实、凭什么形成解释、哪些其他解释仍可能成立、什么会阻断或改变判断。小说允许多视角，人物台词不直接充当作者立场，情节后果不自动当作现实规律。
+
+思想与叙事同时影响生成。采集观察视角、材料揭示次序、叙述距离、与读者的关系和语言节奏；每项说明其认识作用与语境。完整范例示范从事实形成认识，原书重建与书外合成分别标明。简答、解释、探索、决策不强制同一格式。
+
+来源足够但不能独立执行的思想或审美不因此淘汰；来源或解释不充分的内容标 unresolved，不进入可断言的核心。
+
+## 二 程序能力与出图
+
+原文包含需要交付的计算、流程、排障或可执行框架时，完整读 `$PLUGIN/vendor/cangjie-skill/SKILL.md`，沿其阶段0–4生成 `.cangjie/capabilities/` Bundle、能力卡与压力测试记录。程序能力的 V1/V2/V3、RIA++ 和晋级纪律沿用上游；思想与叙事仍由本技能定义。
+
+没有程序时，在 model 中登记 `procedures.status: not_applicable` 和范围原因，交由来源复核，不制造空 Bundle。已有 Bundle 不能宣称不适用；原有程序 single/pack 模式继续按其 Bundle 工作。
+
+### SVG 出图
+
+需要图时先读 `$PLUGIN/vendor/svg-diagram/SKILL.md`。能力图放 `.cangjie/capabilities/resources/` 并在卡片正文与 Bundle resources 声明；overview/digest 图放书树 `assets/`，正文相对引用。图文一致，lint error 清零：
+
 ```bash
-node $PLUGIN/vendor/svg-diagram/tools/svg-lint/bin/svg-lint.mjs <图.svg>
+node "$PLUGIN/vendor/svg-diagram/tools/svg-lint/bin/svg-lint.mjs" <图.svg>
 ```
 
-栅格图是另一条可选路径，不进入图件闸，也不写进能力卡的 `resources:`。只在操作者明确要求、且本机已有 `HCTI_API_ID` 与 `HCTI_API_KEY` 时，把**书树以外**的 HTML/CSS 交给：
+仅用户明确要求栅格图，且已有 `HCTI_API_ID`、`HCTI_API_KEY` 时，先读 html-css-to-image 的 SKILL，再用 `bridge/render_html_image.py` 处理书树以外的 HTML/CSS。它不进四闸，也不替代 SVG 闸；无密钥不调用。
+
+## 三 来源核查与适用程序四闸
+
+思想、表达及范例按 [来源合同](references/distill-thinking.md) 运行 `thinking_audit.py`，生成逐项语义复核模板并由独立读原文的评审填写。引文与上下文逐字存在，只证明来源定位，不能自动证明解释成立。退出3为待复核，不能宣称通过。
+
+有程序 Bundle 时，先逐字桥接，再运行原有四闸：
 
 ```bash
-$PY $PLUGIN/bridge/render_html_image.py --html <卡.html> --css <卡.css> --out <图.png> --ws $WS
+$PY "$PLUGIN/bridge/cangjie_to_dsh.py" --book-dir "$BOOK" --source "$SRC" --task "$TASK" --ws "$WS"
+$PY "$PLUGIN/bridge/run_audit.py" --task "$TASK" --ws "$WS"
 ```
 
-先读 `$PLUGIN/vendor/html-css-to-image/SKILL.md`。密钥不写进仓库。`--check` 只确认客户端版本，不发起请求。输入若在 `books/` 或 `.work/`，脚本拒绝送出。没有密钥就停在说明，不要改用别的截图库顶替。
+四闸仍查池覆盖、日期锚、证据闭包、SVG。新增机器回执绑定原文、Bundle 和审计副本；改材料必须重新桥接核查。没有程序时报告“经核实不适用”，不能写“四闸全绿”。
 
-## 阶段二 — 桥接（逐字回源核验）
-
-```bash
-$PY $PLUGIN/bridge/cangjie_to_dsh.py --book-dir $WS/books/<slug> --source <原书.txt|.md|.pdf> --task <slug> --ws $WS
-```
-
-它把原文落成 `$WS/.work/<task>/book_text.md`（PDF 自动抽取——**审计锚定对象永远是原始书文**），解析每张能力卡 R 段引文并**去空白逐字比对**，铸稳定池 id（`CJ-NNN`）生成 dsh 格式池与技能审计副本。任何引文对不上 ⇒ rc=1 红牌，回阶段一修 R 层。
-
-## 阶段三 — 四闸审计（判态）
-
-```bash
-$PY $PLUGIN/bridge/run_audit.py --task <slug> --ws $WS
-```
-
-依次跑：证据包构建件 → G-66 池覆盖 → G-67 锚一致 → G-68 证据闭包 → 图件闸（svg 引用完整 + svg-lint 合规）。判态追加到 `$WS/.work/<task>/audit-verdict.md`（审计时间线）。
-
-## 阶段四 — 放行或回炉
-
-| 判态 | 去向 |
+| 失败位置 | 回炉 |
 |---|---|
-| 全绿 | 放行 → `$PY $PLUGIN/vendor/cangjie-skill/scripts/cangjie.py compile --bundle $WS/books/<slug>/.cangjie/capabilities --out <用户确认的安装目标> --output auto` |
-| 桥接回源红 / G-67 红 | 回 cangjie **阶段 2**（R 层引文/日期锚修正），重跑桥接 |
-| G-66 红（精选未落 R 层） | 回 cangjie **阶段 1/1.5**（补采候选/复核淘汰），重跑桥接 |
-| G-68 红（闭包/漂移） | 先重跑审计入口；仍红查阶段 3/4 的 id 映射 |
-| 图件闸红 | 按房规**修图或补引用**，重跑审计入口 |
+| 思想、核心、叙事、范例语义 | 修对应条目与来源，再作独立复核 |
+| 桥接回源 / G-67 | 修程序 R 层引文与日期锚，重跑桥接 |
+| G-66 | 回仓颉阶段1/1.5补采或复核淘汰 |
+| G-68 | 重建证据包；仍红查 id 映射 |
+| 图件 | 修图或补引用，重跑审计 |
 
-回炉是常态不是失败——带着闸门给出的具体失败项（哪条引文、哪个 id、哪张图）定向修，不要整册重做。
+## 四 构建候选并实测回答
 
-## 判据口径（谁在查什么）
+来源及适用程序审计通过后，读取 [实际回答评测与发布](references/evaluate-and-publish.md)：
 
-- **回源**：引文去空白后必须是原文逐字子串——防"引了但原文没有"。
-- **G-66**：critical/high 能力（桥接打"总纲"标记）的引文必须落在某卡 R 层——防重要单元被静默漏掉。
-- **G-67**：同行"日期×引文"必须在原文 400 字窗口共现——防张冠李戴的时间锚。
-- **G-68**：技能引用的每个池 id 有 sha256 闭包且池不漂移——防"引了找不到原文/池改包未重建"。
-- **图件闸**：引用的 svg 必须存在、所有 svg 过 lint error=0——防断链与烂图。
+```bash
+$PY "$PLUGIN/bridge/build_book_skill.py" candidate --book-dir "$BOOK" --source "$SRC" --ws "$WS" --review "$REVIEW"
+```
 
-## 质量红线
+候选只写 `.work/`，不等于已验收。构建器逐字内嵌已审思想核心与口吻摘要，携带范例及必要短证据；调用上游编译程序依赖，再只选取程序卡、资源和支撑材料，生成自有程序索引。上游“一张卡、未命中即停”的总入口不装入新包。
 
-1. 没有原文不蒸馏；引文 ≤150 字/段（英文 ≤100 词）。
-2. 合成演练不得冒充书中案例；A1 无原书案例时如实标注。
-3. 审计全绿前不 compile、不安装。
-4. 淘汰项（`rejected/`）保留理由；重要缺口如实登记，不虚报零遗漏。
-5. 图与正文一致——数据变了图必须跟着变；与正文矛盾的图比没图更糟。
-6. 版权合规由使用者按原书授权判断；本工作流只保证"准则可执行、引文可核验"。
+按目标宿主在干净会话实际答题。复杂 Skill 优先用独立 sub-agent 压力测试：只给本题输入、候选路径与所需原始事实，不给评分依据；多轮题逐轮递交。保存真实回答及可得的加载记录，再由独立、隐藏变体标签的评审核查。
 
-## 生态位
+核心任务包括陌生迁移、跨章综合、条件变化与不变、多轮修正、解释探索，以及短答/长答的叙事口吻。比较无该书 Skill、实际旧版、原文检索基线与新版；缺少旧版就记缺席。移除思想、表达或范例作诊断，保留题不参与调优。
 
-- **cangjie-skill**（随包于 `$PLUGIN/vendor/`）：蒸馏方法论与流程的权威定义。
-- **dsh-distillation-director**（同上）：三闸判态的权威实现，本地脚本零 API 成本。
-- **svg-diagram**（同上）：出图房规与 lint。图件闸只认它。
-- **html-css-to-image**（同上，v0.3.0）：可选栅格出图。审计仍全本地、零 API 成本；这个客户端只有显式出图且密钥齐全时才访问网络。
-- 本技能只做编排与判态收口；上游规范以各 vendor 的 SKILL.md/README 为准，冲突时以 vendor 原文为准并在此登记偏差。svg 与栅格冲突时，以 svg 为审计对象。
+## 五 验收与交付
+
+评测入口的 prepare、collect、score-structural、report 分开；准备题目或字段通过不等于回答通过。思想忠实、推演、实际效用和叙事口吻分别核查，用户根据完整回答审阅目标口吻。
+
+实际输出缺失、语义未评、保留题不足或用户口吻审阅未完成时，提交明确标为试验的候选与当前缺口，保留断点，不能宣称整书正式放行。
+
+正式整书交付：使用 `build_book_skill.py publish`，只发布与验收记录绑定的原候选字节；指定安装目标沿用用户已明确的选择。替换已有目标时先保留可恢复快照，内容改动须重建并重验受影响项目。
+
+用户明确选择原有程序 single/pack 的交付：适用程序审计全绿后调用上游 `cangjie.py compile --output <原选择>`，其结果只标程序版，不能冒充已完成思想与文风升级。
+
+## 权威与边界
+
+本技能和 references 定义思想、叙事、候选构建与行为验收；仓颉定义程序能力，dsh 定义程序三闸，svg-diagram 定义图件房规。四件 vendor 源码不改；通过进程级调用组合。文件合同由 `bridge/` 实现，设计背景见 `docs/designs/judgment/`。
+
+普通 Skill 文件不改变模型权重。以原文语义和实际回答验证思想是否发挥作用；不能以引用数、文件数、字段齐全或模型自述“已理解”证明思考能力。

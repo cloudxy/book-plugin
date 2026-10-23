@@ -2,7 +2,7 @@ PY := .venv/bin/python
 CANGJIE := vendor/cangjie-skill/scripts/cangjie.py
 SVG_LINT := vendor/svg-diagram/tools/svg-lint/bin/svg-lint.mjs
 
-.PHONY: doctor gates-selftest e2e bridge audit compile lint-svg new-book clean
+.PHONY: doctor gates-selftest e2e thinking-test bridge audit compile thinking-audit candidate eval-report publish lint-svg new-book clean
 
 doctor: gates-selftest
 	@$(PY) $(CANGJIE) doctor
@@ -24,18 +24,38 @@ gates-selftest:
 
 e2e:
 	@$(PY) tests/e2e_test.py
+	@$(PY) -B tests/thinking_test.py
+
+thinking-test:
+	@$(PY) -B tests/thinking_test.py
 
 bridge:
 	@test -n "$(BOOK)" && test -n "$(SRC)" || (echo "用法: make bridge BOOK=books/<slug> SRC=<原文.txt|md|pdf> [TASK=<slug>]"; exit 2)
-	@$(PY) bridge/cangjie_to_dsh.py --book-dir $(BOOK) --source $(SRC) $(if $(TASK),--task $(TASK))
+	@$(PY) bridge/cangjie_to_dsh.py --book-dir "$(BOOK)" --source "$(SRC)" --ws "$(CURDIR)" $(if $(TASK),--task "$(TASK)")
 
 audit:
 	@test -n "$(TASK)" || (echo "用法: make audit TASK=<slug>"; exit 2)
-	@$(PY) bridge/run_audit.py --task $(TASK)
+	@$(PY) bridge/run_audit.py --task "$(TASK)" --ws "$(CURDIR)"
 
 compile:
 	@test -n "$(BOOK)" && test -n "$(OUT)" || (echo "用法: make compile BOOK=books/<slug> OUT=<安装目标>  # 仅判态全绿后使用"; exit 2)
-	@$(PY) $(CANGJIE) compile --bundle $(BOOK)/.cangjie/capabilities --out $(OUT) --output auto
+	@$(PY) bridge/build_book_skill.py procedures --book-dir "$(BOOK)" --ws "$(CURDIR)" --out "$(OUT)" --output "$(if $(OUTPUT),$(OUTPUT),auto)" $(if $(TASK),--task "$(TASK)") $(if $(SRC),--source "$(SRC)")
+
+thinking-audit:
+	@test -n "$(BOOK)" && test -n "$(SRC)" || (echo "用法: make thinking-audit BOOK=books/<slug> SRC=<原文> [REVIEW=<独立评审.json>]"; exit 2)
+	@$(PY) bridge/thinking_audit.py --book-dir "$(BOOK)" --source "$(SRC)" --ws "$(CURDIR)" $(if $(REVIEW),--review "$(REVIEW)")
+
+candidate:
+	@test -n "$(BOOK)" && test -n "$(SRC)" || (echo "用法: make candidate BOOK=books/<slug> SRC=<原文> [REVIEW=<独立评审.json>]"; exit 2)
+	@$(PY) bridge/build_book_skill.py candidate --book-dir "$(BOOK)" --source "$(SRC)" --ws "$(CURDIR)" $(if $(REVIEW),--review "$(REVIEW)") $(if $(TASK),--task "$(TASK)")
+
+eval-report:
+	@test -n "$(RUN)" || (echo "用法: make eval-report RUN=<评测目录>"; exit 2)
+	@$(PY) bridge/eval_book_skill.py report --run-dir "$(RUN)"
+
+publish:
+	@test -n "$(CANDIDATE)" && test -n "$(ACCEPTANCE)" && test -n "$(OUT)" || (echo "用法: make publish CANDIDATE=<候选> ACCEPTANCE=<验收记录> OUT=<安装目标>"; exit 2)
+	@$(PY) bridge/build_book_skill.py publish --candidate "$(CANDIDATE)" --acceptance "$(ACCEPTANCE)" --out "$(OUT)"
 
 lint-svg:
 	@test -n "$(FILE)" || (echo "用法: make lint-svg FILE=<路径.svg>（可多文件）"; exit 2)

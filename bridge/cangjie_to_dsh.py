@@ -35,6 +35,8 @@ import re
 import sys
 import time
 
+from book_skill_common import bridge_state, procedure_hash, source_hashes, write_json
+
 try:
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 except Exception:
@@ -49,6 +51,12 @@ TYPE_MAP = {
 FEATURED_TAG = '总纲'            # 映射到 G-66 精选覆盖的默认 tag（--tags 总纲,划范围,数值包络）
 IMPORTANCE_FEATURED = ('critical', 'high')
 QUOTE_LIMIT_CN = 150
+
+
+def quote_over_limit(quote):
+    if any('\u3400' <= char <= '\u9fff' for char in quote):
+        return len(qnorm(quote)) > QUOTE_LIMIT_CN
+    return len(quote.split()) > 100
 
 
 def qnorm(s):
@@ -306,9 +314,8 @@ def main():
             if not ok:
                 warnings.append('%s：%s 引文未能逐字回源（回炉 cangjie 阶段2 修正 R 层）：「%s…」'
                                 % (slug, pid, q[:30]))
-            if nchar > QUOTE_LIMIT_CN:
-                warnings.append('%s：%s 引文 %d 字超 cangjie 红线上限 %d（中文口径）'
-                                % (slug, pid, nchar, QUOTE_LIMIT_CN))
+            if quote_over_limit(q):
+                warnings.append('%s：%s 引文超 cangjie 红线上限（中文150字/英文100词）' % (slug, pid))
             report_rows.append((pid, slug, imp or '?', q, anchor, ok))
             sq.append((pid, q, anchor))
         per_skill_quotes[slug] = sq
@@ -364,7 +371,18 @@ def main():
     for w in warnings:
         print('⚠ %s' % w)
     print('报告：%s' % os.path.join(tdir, 'bridge-report.md'))
-    if n_bad:
+    invalid_quotes = bool(n_bad or any(not sq for sq in per_skill_quotes.values())
+                          or any(quote_over_limit(row[3]) for row in report_rows))
+    # Bind the gate run to the actual source, Bundle and copied audit text.
+    # A re-bridge revokes every prior passing receipt for this task.
+    write_json(os.path.join(tdir, 'bridge-inputs.json'), {
+        'source': source_hashes(a.source), 'procedures': procedure_hash(book_dir),
+        'bridge_state': bridge_state(tdir), 'valid': not invalid_quotes,
+    })
+    receipt = os.path.join(tdir, 'audit-result.json')
+    if os.path.isfile(receipt):
+        os.unlink(receipt)
+    if invalid_quotes:
         print('🔴 存在未回源引文 —— 回炉 cangjie 阶段 2（修正 R 层）后重跑本桥接')
         return 1
     print('✔ 桥接完成 —— 下一步：python bridge/run_audit.py --task %s' % task)
