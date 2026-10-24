@@ -25,9 +25,11 @@ gates-selftest:
 e2e:
 	@$(PY) tests/e2e_test.py
 	@$(PY) -B tests/thinking_test.py
+	@$(PY) -B tests/persona_test.py
 
 thinking-test:
 	@$(PY) -B tests/thinking_test.py
+	@$(PY) -B tests/persona_test.py
 
 bridge:
 	@test -n "$(BOOK)" && test -n "$(SRC)" || (echo "用法: make bridge BOOK=books/<slug> SRC=<原文.txt|md|pdf> [TASK=<slug>]"; exit 2)

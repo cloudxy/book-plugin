@@ -8,7 +8,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from book_skill_common import (ContractError, SCHEMA, digest, input_snapshot, load_source,
+from book_skill_common import (ContractError, SCHEMA, SUPPORTED_SCHEMAS, digest, input_snapshot, load_source,
     markdown_records, qnorm, read_json, read_yaml, section, slug, text, write_json)
 
 
@@ -31,8 +31,10 @@ def validate(book, source):
     book = Path(book)
     snapshot = input_snapshot(book, source)
     model = read_yaml(book / "thinking/model.yaml")
-    if model.get("schema_version") != SCHEMA:
-        raise ContractError(f"model schema_version must be {SCHEMA}")
+    schema = model.get("schema_version")
+    if schema not in SUPPORTED_SCHEMAS:
+        raise ContractError(f"unsupported model schema: {schema}")
+    persona = schema == SCHEMA
     meta = model.get("book", {})
     slug(meta.get("id"))
     for name in ("title", "author", "edition", "kind", "description"):
@@ -42,7 +44,7 @@ def validate(book, source):
     for name in ("coverage", "includes", "excludes"):
         text(scope.get(name), f"scope.{name}")
     evidence = read_yaml(book / "evidence/anchors.yaml")
-    if evidence.get("schema_version") != SCHEMA or evidence.get("source") != snapshot["source"]:
+    if evidence.get("schema_version") != schema or evidence.get("source") != snapshot["source"]:
         raise ContractError("evidence source version/hash/normalization differs from actual source")
     src = qnorm(load_source(source))
     anchors = {}
@@ -70,10 +72,18 @@ def validate(book, source):
     if not anchors:
         raise ContractError("at least one source anchor required")
 
+    episodes = {}
+    if persona:
+        from author_persona import episodes_from
+        episodes = episodes_from(book, snapshot, src, anchors)
     nodes, kinds = {}, {}
-    for kind in ("concerns", "concepts", "claims", "relations", "operators", "conflicts"):
+    node_kinds = ("concerns", "concepts", "claims", "relations", "operators", "conflicts")
+    if persona:
+        node_kinds += ("habits", "paths")
+    for kind in node_kinds:
         values = items(model.get(kind), kind)
-        if kind != "conflicts" and not values:
+        required = kind in {"concerns", "operators", "habits", "paths"} if persona else kind != "conflicts"
+        if required and not values:
             raise ContractError(f"{kind}: at least one item required")
         for node in values:
             nid = text(node.get("id"), f"{kind}.id")
@@ -98,6 +108,9 @@ def validate(book, source):
             for field in ("intent", "inputs", "move", "warrant", "alternatives", "blocked_by", "revise_when"):
                 text(node.get(field), f"{nid}.{field}")
 
+    if persona:
+        from author_persona import node_contracts
+        node_contracts(nodes, kinds, episodes)
     core = model.get("core", {})
     text(core.get("text"), "core.text")
     pending = list(references(core.get("include"), nodes, "core.include"))
@@ -113,6 +126,8 @@ def validate(book, source):
         pending += node.get("depends_on", []) + node.get("limits", []) + node.get("uses", [])
         if kinds[nid] == "relations":
             pending += [node["from"], node["to"]]
+        if kinds[nid] == "paths":
+            pending += node["habits"] + node["operators"]
     if not any(kinds[nid] == "operators" for nid in closure):
         raise ContractError("core must include at least one usable thought operation")
 
@@ -156,6 +171,10 @@ def validate(book, source):
             raise ContractError(f"{nid}: application and condition-change examples required")
         if any(nid not in examples[e]["uses"] for e in refs):
             raise ContractError(f"{nid}: example does not use this operation")
+    author_targets = {}
+    if persona:
+        from author_persona import persona_contracts
+        author_targets = persona_contracts(model, nodes, kinds, episodes, styles, examples, closure)
     procedures = model.get("procedures", {})
     if procedures.get("status") == "not_applicable":
         text(procedures.get("reason"), "procedures.reason")
@@ -171,6 +190,8 @@ def validate(book, source):
     checks += [f"node:{x}" for x in nodes]
     checks += [f"style:{x}" for x in styles]
     checks += [f"example:{x}" for x in examples]
+    if persona:
+        checks += ["author"] + [f"episode:{x}" for x in episodes]
     if procedures["status"] == "bundle":
         bundle = read_yaml(book / ".cangjie/capabilities/verified.yaml")
         for cap in items(bundle.get("capabilities"), "procedure capabilities"):
@@ -180,7 +201,8 @@ def validate(book, source):
         raise ContractError("duplicate review target/procedure id")
     return {"model": model, "evidence": evidence, "snapshot": snapshot,
             "input_sha256": digest(snapshot), "checks": sorted(checks),
-            "core_closure": sorted(closure), "styles": styles, "examples": examples}
+            "core_closure": sorted(closure), "styles": styles, "examples": examples,
+            "episodes": episodes, "author_targets": author_targets}
 
 
 def re_cjk(value):
@@ -190,7 +212,7 @@ def re_cjk(value):
 def audit(book, source, review=None):
     try:
         data = validate(book, source)
-        result = {"schema_version": SCHEMA, "status": "pending", "structural": "passed",
+        result = {"schema_version": data["model"]["schema_version"], "status": "pending", "structural": "passed",
                   "semantic": "pending", "input_sha256": data["input_sha256"],
                   "checks": data["checks"], "core_closure": data["core_closure"]}
         path = Path(review) if review else Path(book) / "eval/source-review.json"
@@ -229,7 +251,7 @@ def main():
     if args.prepare_review:
         try:
             prepared = validate(args.book_dir, args.source)
-            result = {"schema_version": SCHEMA, "status": "pending", "structural": "passed",
+            result = {"schema_version": prepared["model"]["schema_version"], "status": "pending", "structural": "passed",
                       "semantic": "pending", "input_sha256": prepared["input_sha256"],
                       "checks": prepared["checks"]}
         except (ContractError, OSError, ValueError, TypeError, KeyError) as exc:

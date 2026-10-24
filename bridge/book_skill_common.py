@@ -9,13 +9,16 @@ from urllib.parse import unquote
 
 import yaml
 
-VERSION = "0.3.0"
-SCHEMA = "book-skill/1"
+VERSION = "0.4.0"
+SCHEMA = "book-skill/2"
+LEGACY_SCHEMA = "book-skill/1"
+SUPPORTED_SCHEMAS = (LEGACY_SCHEMA, SCHEMA)
 INPUTS = (
     "thinking/model.yaml", "thinking/EXAMPLES.md", "expression/PROFILE.md",
     "evidence/anchors.yaml", "BOOK_OVERVIEW.md", "coverage-audit.md",
 )
 DIMENSIONS = ("fidelity", "modeling", "inference", "updating", "utility", "expression")
+AUTHOR_DIMENSIONS = ("author_cognition", "author_expression")
 STYLE_DIMENSIONS = ("viewpoint", "organization", "tone", "rhythm", "naturalness", "preservation")
 CASE_GROUPS = tuple(f"C{i:02}" for i in range(1, 16))
 
@@ -152,11 +155,15 @@ def source_hashes(source):
 def input_snapshot(book, source):
     book = Path(book)
     files = {}
-    for rel in (*INPUTS, "GLOSSARY.md"):
+    schema = read_yaml(book / "thinking/model.yaml").get("schema_version")
+    if schema not in SUPPORTED_SCHEMAS:
+        raise ContractError(f"unsupported model schema: {schema}")
+    required = INPUTS + (("reading/episodes.yaml",) if schema == SCHEMA else ())
+    for rel in (*required, "GLOSSARY.md"):
         path = contained(book, rel)
         if path.is_file():
             files[rel] = digest(path.read_bytes())
-        elif rel in INPUTS:
+        elif rel in required:
             raise ContractError(f"missing required input: {rel}")
     return {"files": files, "source": source_hashes(source), "procedures": procedure_hash(book)}
 
@@ -190,12 +197,24 @@ def engine_hash():
 def verify_package(root):
     root = Path(root).resolve()
     manifest = read_json(root / "book-workflow-manifest.json")
-    if manifest.get("schema_version") != SCHEMA:
+    if manifest.get("schema_version") not in SUPPORTED_SCHEMAS:
         raise ContractError("unsupported package manifest")
     actual = tree_hashes(root)
     actual.pop("book-workflow-manifest.json", None)
     if actual != manifest.get("files") or digest(actual) != manifest.get("build_id"):
         raise ContractError("package payload changed or files missing/unlisted")
+    model = read_yaml(root / "references/thinking/model.yaml")
+    if model.get("schema_version") != manifest["schema_version"]:
+        raise ContractError("manifest cannot downgrade/upgrade the payload schema")
+    if manifest["schema_version"] == SCHEMA:
+        if manifest.get("product_kind") != "author-persona":
+            raise ContractError("author package product kind missing")
+        targets = read_json(root / "references/author-targets.json")
+        if not targets or targets != manifest.get("author_targets"):
+            raise ContractError("manifest author inventory differs from built payload")
+        from author_persona import author_profile
+        if (root / "references/AUTHOR_PROFILE.md").read_text() != author_profile(model):
+            raise ContractError("author profile must be generated from the audited model")
     if [p for p in actual if Path(p).name == "SKILL.md"] != ["SKILL.md"]:
         raise ContractError("exactly one discoverable SKILL.md required")
     for rel in actual:

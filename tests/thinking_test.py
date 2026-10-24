@@ -16,7 +16,7 @@ sys.path.insert(0, str(ROOT / "bridge"))
 from book_skill_common import (ContractError, DIMENSIONS, STYLE_DIMENSIONS, digest,
     input_snapshot, read_json, read_yaml, source_hashes, tree_hashes, verify_package, write_json)
 from thinking_audit import audit, validate
-from build_book_skill import build_candidate, publish
+from build_book_skill import build_candidate, publish, compile_procedures
 from eval_book_skill import collect, prepare, report_run
 
 
@@ -362,6 +362,16 @@ class ThinkingContracts(unittest.TestCase):
         self.assertEqual(len(list(package.rglob("SKILL.md"))), 1)
         self.assertEqual((package / "references/procedures/resources/compound-patience.svg").read_bytes(),
                          (bundle_dir / "resources/compound-patience.svg").read_bytes())
+        # Explicit single/pack compilation must work without author inputs.
+        thinking = self.book / "thinking"
+        snapshot = self.book / "thinking-test-snapshot"
+        thinking.rename(snapshot)
+        try:
+            output = self.ws / "program-only"
+            self.assertEqual(compile_procedures(self.book, self.ws, output, "single", self.source), 0)
+            self.assertTrue((output / "SKILL.md").is_file())
+        finally:
+            snapshot.rename(thinking)
         # Changing a card cannot reuse the old source review or passing gate receipt.
         card = bundle_dir / "cards/compound-patience.md"
         card.write_text(card.read_text() + "\nchanged\n")

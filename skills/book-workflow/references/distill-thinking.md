@@ -1,86 +1,106 @@
-# 重建思想与叙事
+# 从原作重建作者
 
-适用于 0.3.0 默认的整书 Skill。源文本与产物均放工作区私有 `books/<slug>/`。以下字段是 `bridge/thinking_audit.py` 实际读取的 `book-skill/1` 合同；结构通过之后仍须独立语义复核。
+0.4.0新蒸馏使用`book-skill/2`。以下字段由`bridge/thinking_audit.py`和`author_persona.py`实际读取。v1保持[原合同](legacy-v1.md)，升级必须补读、重建并重新审阅，不能改版本号或把旧概念重命名即完成。
 
-## 从全文到可使用的思想
+## 阅读与四类覆盖
 
-先确认版本、译者和实际覆盖范围。按全文阅读建立 `BOOK_OVERVIEW.md` 和 `coverage-audit.md`，把核心问题、概念区别、论证或叙事关系、分歧、表达样态映射到去向或缺口。原文污染、OCR、人物声音和补传分别说明，不能用最后生成的卡片反推覆盖。
+固定原文、版本、译者与正文/附录边界。先独立建立`BOOK_OVERVIEW.md`、`coverage-audit.md`，记录重要问题、论证、叙事、声音与语体各自去向和缺口；不能用最终模型反推覆盖。分别报告：
 
-先写出本书怎样看问题、什么关系能支持判断、怎样认识自己的错误，再登记概念与关系。不要把“分析、比较、反思”单独当成书中特有的能力。对小说可重建视角、选择和代价，保留多种解释；叙事后果不直接变成普遍因果。
+- reading：实际读到哪里，哪些段落、场景或时期未读。
+- reconstruction：重建了什么，哪些重要思想或表达仍未建模。
+- runtime：哪些已审机制实际进入核心，能够支持哪些任务。
+- acceptance：哪些范围在何种宿主实际验过，哪些还在待验。
 
-`thinking/model.yaml` 顶层字段：
+全文切片用于阅读安排，不能以窗口数量证明语义覆盖。完整论证或场景可跨阅读窗口，须接上上下文；标题、网页污染、OCR、编者、译者、人物、引用者分别登记。只排除一个局部时不连带删除整个窗口。
 
-| 字段 | 实际合同 |
+输入中的runtime与acceptance声明目标及验收范围，不填写会随运行变化的通过状态。实际进度放PIPELINE_STATE，实际验收由包外的绑定报告判定；不在答题通过后反写核心或scope，使原被测包发生变化。
+
+## 公开文本的推演片段
+
+`reading/episodes.yaml`顶层：`schema_version: book-skill/2`、`source`、非空`episodes`。source用`book_skill_common.source_hashes(实际原文)`生成，格式沿用v1：raw_sha256、text_sha256、normalization=qnorm-v1。
+
+每个episode的实际字段：
+
+| 字段 | 要求 |
 |---|---|
-| schema_version | `book-skill/1` |
-| authored_by | 本次思想及表达规格编写者标识；不能兼作独立复核者 |
-| book | `id`（小写 slug）、`title`、`author`、`edition`、`kind`、`description`，均为非空文本；未知版本信息如实注明 |
-| scope | `coverage`、`includes`、`excludes`，均为具体范围说明；选篇不能标整书 |
-| concerns / concepts / claims / relations / operators | 各为非空列表；只保留有来源及用途的条目 |
-| conflicts | 列表，可空；有实质分歧则保留 |
-| core | `include` 为核心条目 id，`text` 为审阅过的连贯运行文本 |
-| procedures | 有 Bundle 写 `status: bundle`；无程序写 `status: not_applicable` 与具体 `reason`，并经复核 |
+| id | 唯一文本id |
+| start / end | 原文去全部空白后的字符范围`[start,end)`；整数且不越界 |
+| span_sha256 | `digest(qnorm原文[start:end].encode())`；不是原文件字节切片 |
+| locator | 可回读的篇章、页码或时间范围 |
+| voice | `level`为author/narrator/character/quoted/editor/translator/mixed之一；`speaker`具体说明分层 |
+| task | 文本在处理什么问题或读者预期 |
+| progression | 可以回查的材料选择、关系展开、视角或信息转换与收束 |
+| reading_effect | 这些写法怎样改变读者认识，不能只填“生动” |
+| completeness | 此逻辑单元读到的前后边界、尚未闭合的部分和排除内容 |
+| anchors | 本范围内的短证据id列表；反证片段可无短引文 |
 
-所有思想条目共同字段：`id`、`statement`、`epistemic_status`、`anchors`、`conditions`、`speaker`。认识地位使用 `explicit` / `reconstructed` / `unresolved`；没有来源的条目不能因为常识合理而入核心。`depends_on` 和 `limits` 可选，为思想 id 列表。
+记录文本公开可见的动作，不索取模型内部思维，不声称还原作者真实心理或落笔顺序。范围哈希只证明定位；逻辑完整性、声音归属及构思解释由独立读原文的人复核。
 
-关系另有 `from`、`to`、`type`。类型为 `causal`、`conditional`、`value`、`analogy`、`narrative`、`supports`、`constrains`、`contradicts`、`depends_on` 之一。方向必须符合原文，不能把相邻出现当作因果。
+## 模型与作者画像
 
-思想动作另有非空文本 `intent`、`inputs`、`move`、`warrant`、`alternatives`、`blocked_by`、`revise_when`，以及思想 id 列表 `uses`、范例 id 列表 `examples`。写明事实凭什么支持解释、哪些不同解释仍可能成立、什么条件会改变判断。
+`thinking/model.yaml`：
 
-`core.text` 把这些内容写成可以指导理解的连贯文本，保留必要限制与实质冲突。构建器逐字嵌入入口与生成 CORE，不另作自由摘要；核心全部依赖不能包含 unresolved 条目。结构检查不证明这段说明在语义上忠实。
+| 字段 | 合同 |
+|---|---|
+| schema_version / authored_by | `book-skill/2`；本次规格编写者标识，不能兼任独立来源评审 |
+| book | id小写slug；title、author、edition、kind、description均非空，未知如实写明 |
+| scope | coverage、includes、excludes及上面reading/reconstruction/runtime/acceptance，均为具体非空文本；局部不能写整书 |
+| author | portrait整体说明、scope范围、voice_policy声音纪律、limits局限，均为非空文本 |
+| concerns / operators / habits / paths | 非空列表 |
+| concepts / claims / relations / conflicts | 列表，可空；有实际关系才登记，不为小说制造哲学体系 |
+| core | include思想/习惯/路径id列表；text已审联合运行文本 |
+| procedures | 有Bundle写status=bundle；无程序写status=not_applicable及reason，须独立复核 |
 
-核心要让模型能处理原书没写过的问题：交代它关注的事实、形成解释的关系、作取舍的依据和改变判断的条件。篇名、年代、引文和说话者归属留在来源条目按需核对，不以它们串起运行核心。核查原作主张需要来源；应用时的新判断由当前事实与可迁移的关系支持，不要求逐句在原文找答案。小说可以提供观察人物、理解代价和冲突的视角，经说明适用条件用于新情境；不能把“非普遍定律”推成“只能评论原句”。风险与适用边界按具体问题确定，不凭文本里出现过战争、交易或冲突就一律禁止正常的项目建议和日常行动。
+全部模型节点共有`id`、`statement`、`epistemic_status`、`anchors`、`conditions`、`speaker`。认识地位explicit/reconstructed/unresolved；depends_on和limits可选，为节点id列表。重建并非作者明说，未解决假设不能进入核心依赖闭包。
 
-原作不足以支持可用的思想关系与动作时，登记产品条件未满足，可交有依据的程序或参考材料；不能为填满字段替它发明一套思想体系。
+关系另有from、to、type。类型保留causal/conditional/value/analogy/narrative/supports/constrains/contradicts/depends_on。方向和机制须实际成立，相邻句子不证明因果，局部习惯不自动支持整个复合路径。
 
-## 证据与上下文
+思想动作另有非空intent、inputs、move、warrant、alternatives、blocked_by、revise_when，以及uses节点列表、examples范例列表。交代凭什么形成判断，而非只写“分析、比较、反思”。核心动作仍须有application与condition_variant。
 
-`evidence/anchors.yaml` 顶层为 `schema_version: book-skill/1`、`source`、`anchors`。先读取实际源文件，用下面的函数取得 `source`，不手填或猜测哈希：
+## 隐藏习惯与可变路径
 
-```bash
-$PY -c 'import sys; sys.path.insert(0, sys.argv[1]); from book_skill_common import source_hashes; import yaml; print(yaml.safe_dump(source_hashes(sys.argv[2])))' "$PLUGIN/bridge" "<原文路径>"
-```
+习惯从完整构思过程提出具体假设：作者首先注意什么，怎样重新命名问题，从谁的位置看，接受什么依据，如何取舍、排除解释或修正；行文如何参与这些认识。找不同对象、时期、语体中的支持和反证，排查题材、人物、译法或局部修辞等竞争解释。
 
-每条 anchor 包含 `id`、`locator`（人工可读的章/页/时间）、`quote`、`start`、`context`。`start` 是源文本去全部空白后的字符偏移。短引文中文不超过150字、英文不超过100词。
+habit除共有字段外，实际需要：
 
-`context` 包含 `start`、`text`、`speaker`、`audience`、`period`、`level`。上下文文本也必须在声明偏移逐字存在，并覆盖对应引文实例；这能防止把同一句话的另一处出现当作当前出处。上下文允许比引文长，完整原文仍不默认放进交付包。说话者、时代未知时明确记录，不能从文件标题推断每句话是谁说的。
+- episodes：支持片段id列表；anchors须落在这些片段内。
+- trigger、move、effect：触发情境、具体动作、对认识与成文的影响。
+- alternatives、counterevidence、revise_when：竞争解释、反证或未找到反证的具体边界、修正信号，非空文本。
+- stability：local或cross_context。是否足以称跨情境由语义评审判断，不按出现次数自动晋级。
+- counterepisodes：可选反证片段id列表。
 
-## 让叙事参与理解
+一处明确材料能支持局部特征，不能自动支持整个人格。没有提到某因素不等于作者永远忽略它。保留有来源的偏好、锋芒、张力和局限，不只挑最讨好的道理。
 
-`expression/PROFILE.md` 先有唯一的 `## 运行摘要`。下一处二级标题前的文本会逐字嵌入最终入口，必须同时包含适用语体、具体写法与内容限制。
+path另需：episodes；task、selection、composition、revise_when非空文本；habits、operators、expression、examples分别引用习惯、动作、表达和范例。说明面对什么任务，为什么组合这些动作，何时换路径，怎样成文；不能把通用固定步骤套给所有书。路径有application和condition_variant，范例须真正调用该路径及至少一个相关动作，并联结该路径的表达。
 
-运行摘要只放对用户回答有用的自然语言；用下一处二级标题结束摘要，再登记 YAML 表达条目。每块字段是：`id`、`instruction`、`context`、`function`、`limits`、`anchors`、`uses`。后两项分别是证据 id 和思想 id 列表，其余为非空文本。出处纪律约束书内引用，不要把“每答先报篇名时期”或“每句补上没有证明什么”当作日常表达方式。
+核心闭包至少含一条习惯、一条路径和一个思想动作，沿uses/depends_on/limits、关系端点、路径习惯与动作展开；任何unresolved依赖都会阻止构建。联合核心自然写明作者定向、关键区分、路径选择和行文机制。构建器逐字内嵌，不从格言自动拼人设；生成CORE和AUTHOR_PROFILE都不是第二份可手改的输入。
 
-从连续段落观察叙述视角、信息揭示次序、叙述距离、与读者的关系、语气和句群节奏。`function` 说明这种写法怎样帮助认识，例如视角转换保留另一种解释、条件对举显出界限。按实际文体采样，不能凭一段论战让全书永远激烈。
+## 证据与表达
 
-思想与表达同时参与生成。中性版与表达版用来检查内容保持，不能把生产流程固定为先写通用答案再改口吻。真实问答不添加未知经历与感官细节；小说第一人称不自动授权冒充作者经历。
+`evidence/anchors.yaml`与v1相同，schema_version改为book-skill/2，每条增加episodes列表，与episode.anchors双向相符。id、locator、quote、start、context必需；context含start、text、speaker、audience、period、level。引文及覆盖它的上下文均须在声明位置逐字存在；中文短引文≤150字，英文≤100词。全文不默认进入运行包。
 
-## 完整范例
+`expression/PROFILE.md`有唯一`## 运行摘要`，下一处二级标题结束摘要。摘要逐字进入入口，只放运行定向，不能夹YAML来源记录。YAML表达条目仍用id、instruction、context、function、limits、anchors、uses。uses须联结至少一条习惯或路径，function解释写法的认识作用。
 
-`thinking/EXAMPLES.md` 使用 YAML 代码块，每块包含：
+从连续段落看材料次序、叙述距离、读者关系、信息揭示、语气与节奏。反问可能重置问题，延迟揭示可能修正初判，短句可能压实判断；各按实际功能重建。人物台词不直接变作者立场，小说结果不成为现实因果，译本语言不全部归原作者。认知与表达联合生成，不固定先写通用回答再加口头禅。
 
-- `id`、`kind`：类型只能为 `source_reconstruction`、`application`、`condition_variant`。
-- `prompt`、`answer`：完整输入与自然回答；开发者虚构的书外应用在题目或元信息标为合成。回答自然处理题内处境，不必再以“这是合成”开头；真实用户的处境不称为合成。
-- `rationale`：简短的事实、关系与判断对照，供审核使用，不记录完整内部思维。
-- `assumptions`、`change_if`：迁移假设、可能改变判断的新事实。
-- `anchors`、`uses`、`expression`：证据、思想和表达条目的 id 列表。
+## 联合应用范例
 
-至少重建一处原书的论证或叙事；核心思想动作至少关联一个 application 和一个 condition_variant，多个动作可共用完整范例。示范怎样从事实形成认识，不只给正确答案或照搬原书故事。范例进入包，属于已见教学内容；保留题与评分依据不得进入包。
+`thinking/EXAMPLES.md`的每个YAML块：id、kind（source_reconstruction/application/condition_variant）；prompt、answer完整；rationale说明可公开检查的事实、关系和判断；assumptions、change_if；anchors、uses、expression分别引用证据、模型和表达。
 
-application 使用结构上可迁移、表面上不同的书外问题，给出新解释、可修正的判断或适用建议；condition_variant 改变关键事实后展示判断怎样随之改变。只把书中人物、物件换名，再逐句确认说话者或禁止外推，不能算已展示迁移。独立复核同时检查来源忠实和是否真正回答了新问题，不能以引文全对放行只有考据没有运用的核心与范例。
+至少重建一个原书过程。主要路径及核心动作有表面不同的书外应用和改变关键事实的变体，可以共用完整范例。解释、探索、取舍、对话和适用写作应真正处理题内处境。范例不是逐句找原文、换人物复演旧故事或只列禁止外推。教学合成如实标明，真实用户处境不称虚构。范例进包，评分与保留题不进包。
 
-可读的完整格式参照仓内原创合成夹具 [thinking-book](../../../tests/fixtures/thinking-book/thinking/model.yaml)、[表达条目](../../../tests/fixtures/thinking-book/expression/PROFILE.md)、[范例](../../../tests/fixtures/thinking-book/thinking/EXAMPLES.md) 与 [合成来源](../../../tests/fixtures/thinking-source.md)。只借格式，不能把其渡口思想或短句风格移植给其他书。
+格式可看[原创合成v2夹具](../../../tests/fixtures/persona-book/thinking/model.yaml)及其[片段](../../../tests/fixtures/persona-book/reading/episodes.yaml)。只借文件格式，不把合成渡口观点或写法移植给其他书；夹具分数不是作者行为验证。
 
-## 独立复核与回炉
+## 独立来源复核
 
 ```bash
 $PY "$PLUGIN/bridge/thinking_audit.py" --book-dir "$BOOK" --source "$SRC" --ws "$WS" --prepare-review "$BOOK/eval/source-review.json"
 ```
 
-退出3表示结构通过、语义待复核。模板逐条列出 anchor、思想、core、表达、范例、覆盖和程序适用性的目标。由独立阅读原文的复核者写 `reviewer`、`independent: true`，每个目标的 `status`（passed/failed/pending）及具体 `rationale`。编写者不能替自己作独立核查；模板不会自动填通过。
+退出3表示待复核。逐项目标包括author、episode、anchor、node、core、style、example、coverage、procedure_applicability和适用程序合同。独立复核者读原文填写reviewer、independent=true、每项status=passed/failed/pending及具体rationale。真实存在的原句不能自动证明画像、稳定习惯、路径或语体成立；逐项反证与竞争解释同样审。
 
 ```bash
 $PY "$PLUGIN/bridge/thinking_audit.py" --book-dir "$BOOK" --source "$SRC" --ws "$WS" --review "$BOOK/eval/source-review.json"
 ```
 
-结构和语义通过后才构建候选。内容改动会使旧评审失效；保留旧记录，为新输入生成新模板，并在后续命令中显式传入新的 `--review` 路径。原文确实存在但不支持解释时，修思想或表达，不能只改引用位置。
+原文、模型、表达、范例、覆盖或episodes任一改动都会使旧来源评审失效。保留旧记录，为新输入生成新模板；失败定向修相应来源，不改闸门把pending变passed。来源通过才构建私有候选，实际能力还须[独立答题验收](evaluate-and-publish.md)。

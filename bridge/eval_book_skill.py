@@ -11,11 +11,35 @@ import shutil
 import sys
 from pathlib import Path
 
-from book_skill_common import (CASE_GROUPS, DIMENSIONS, SCHEMA, STYLE_DIMENSIONS,
+from book_skill_common import (AUTHOR_DIMENSIONS, CASE_GROUPS, DIMENSIONS, SCHEMA, LEGACY_SCHEMA, STYLE_DIMENSIONS,
     ContractError, digest, json_bytes, read_json, read_yaml, slug, text,
     verify_package, write_json)
 
-RULES = "book-eval/1"
+RULES = "book-eval/2"
+LEGACY_RULES = "book-eval/1"
+
+
+def rules_for(schema):
+    if schema == SCHEMA:
+        return RULES
+    if schema == LEGACY_SCHEMA:
+        return LEGACY_RULES
+    raise ContractError("unsupported evaluation schema")
+
+
+def expected(case, rules):
+    defaults = DIMENSIONS
+    if rules == RULES:
+        task_type = case.get("task_type", "open")
+        if task_type == "lookup":
+            defaults = ("fidelity", "utility")
+        elif task_type == "procedure":
+            defaults = ("fidelity", "modeling", "inference", "utility")
+        else:
+            defaults = tuple(d for d in DIMENSIONS if d != "updating") + AUTHOR_DIMENSIONS
+        if len(turns(case)) > 1:
+            defaults += ("updating",)
+    return case.get("expected_dimensions", defaults)
 
 
 def case_id(value):
@@ -40,7 +64,10 @@ def turns(case):
     return result
 
 
-def cases_from(suite):
+def cases_from(suite, rules=None):
+    rules = rules or suite.get("schema_version", LEGACY_RULES)
+    if rules not in {RULES, LEGACY_RULES} or suite.get("schema_version", LEGACY_RULES) != rules:
+        raise ContractError("suite version differs from package evaluation contract; migrate explicitly")
     cases, seen = suite.get("cases"), set()
     if not isinstance(cases, list) or not cases:
         raise ContractError("nonempty cases list required")
@@ -50,9 +77,27 @@ def cases_from(suite):
             raise ContractError(f"duplicate case/unknown group: {cid}")
         seen.add(cid)
         turns(case)
-        dimensions = case.get("expected_dimensions", list(DIMENSIONS))
-        if not dimensions or any(x not in DIMENSIONS for x in dimensions):
+        dimensions = expected(case, rules)
+        allowed = DIMENSIONS + (AUTHOR_DIMENSIONS if rules == RULES else ())
+        if not isinstance(dimensions, (list, tuple)) or not dimensions or any(x not in allowed for x in dimensions):
             raise ContractError(f"{cid}: invalid expected_dimensions")
+        if rules == RULES:
+            task_type = case.get("task_type", "open")
+            if task_type in {"lookup", "procedure"}:
+                if case["group"] != {"lookup": "C01", "procedure": "C12"}[task_type]:
+                    raise ContractError(f"{cid}: author exception only for exact lookup/procedure groups")
+                text(case.get("applicability_reason"), f"{cid}.applicability_reason")
+            elif task_type not in {"open", "writing", "explanation", "dialogue"}:
+                raise ContractError(f"{cid}: unknown task_type")
+            elif not set(AUTHOR_DIMENSIONS).issubset(dimensions):
+                raise ContractError(f"{cid}: open/writing tasks require both author dimensions")
+            targets = case.get("author_targets", [])
+            if not isinstance(targets, list) or any(not isinstance(x, str) for x in targets) or len(targets) != len(set(targets)):
+                raise ContractError(f"{cid}: invalid author_targets")
+            if task_type not in {"lookup", "procedure"} and not targets:
+                raise ContractError(f"{cid}: author target coverage required")
+            if targets and case.get("author_condition") not in {"normal", "changed"}:
+                raise ContractError(f"{cid}: declare normal/changed author condition")
         rubric = case.get("rubric")
         if isinstance(rubric, list):
             if not rubric:
@@ -66,11 +111,28 @@ def cases_from(suite):
     return cases
 
 
-def prepare(candidate, suite_path, run, variant="candidate", baseline=None, source=None, mode="acceptance"):
+def prepare(candidate, suite_path, run, variant="candidate", baseline=None, source=None, mode="acceptance", control_kind=None):
     candidate, run = Path(candidate).resolve(), Path(run).resolve()
     manifest = verify_package(candidate)
+    if mode not in {"acceptance", "diagnostic"} or variant not in {"candidate", "none", "legacy", "retrieval", "summary", "ablation"}:
+        raise ContractError("unknown mode or material variant")
     suite = read_yaml(suite_path)
-    cases = cases_from(suite)
+    rules = rules_for(manifest["schema_version"])
+    cases = cases_from(suite, rules)
+    inventory = manifest.get("author_targets", {})
+    if rules == RULES:
+        if not isinstance(inventory, dict) or not inventory:
+            raise ContractError("author package target inventory missing")
+        for case in cases:
+            if set(case.get("author_targets", [])) - set(inventory):
+                raise ContractError(f"{case['id']}: unknown author target")
+    if variant in {"summary", "ablation"}:
+        kinds = {"without_habits", "without_expression", "swapped_expression", "without_examples"}
+        if (mode != "diagnostic" or (variant == "ablation" and control_kind not in kinds)
+                or (variant == "summary" and control_kind is not None)):
+            raise ContractError("explicit ablation kind and diagnostic mode required for controls")
+    elif control_kind is not None:
+        raise ContractError("control_kind only belongs to ablation materials")
     if run.exists():
         raise ContractError("run directory exists; preserve previous outputs")
     run.mkdir(parents=True)
@@ -79,7 +141,7 @@ def prepare(candidate, suite_path, run, variant="candidate", baseline=None, sour
     write_json(run / "suite.json", suite)
     if variant == "candidate":
         shutil.copytree(candidate, run / "skill")
-    elif variant == "legacy":
+    elif variant in {"legacy", "summary", "ablation"}:
         if not baseline or not (Path(baseline) / "SKILL.md").is_file():
             raise ContractError("legacy baseline must be a real installed/generated Skill")
         shutil.copytree(baseline, run / "skill")
@@ -93,7 +155,7 @@ def prepare(candidate, suite_path, run, variant="candidate", baseline=None, sour
     for case in cases:
         packet = {"case_id": case["id"], "turns": turns(case), "book_scope": manifest["scope"],
                   "instruction": "依用户问题自然回答。各轮依次处理并保留本题对话；不要读取评分、其他题或其他变体。"}
-        if variant in {"candidate", "legacy"}:
+        if variant in {"candidate", "legacy", "summary", "ablation"}:
             packet["skill"] = str(run / "skill/SKILL.md")
         elif variant == "retrieval":
             packet["source"] = str(run / "source.txt")
@@ -111,11 +173,16 @@ def prepare(candidate, suite_path, run, variant="candidate", baseline=None, sour
     from book_skill_common import tree_hashes
     material = tree_hashes(run / "skill") if (run / "skill").exists() else (
         {"source.txt": digest((run / "source.txt").read_bytes())} if variant == "retrieval" else {})
-    config = {"schema_version": SCHEMA, "rules_version": RULES, "mode": mode,
+    config = {"schema_version": manifest["schema_version"], "rules_version": rules, "mode": mode,
               "variant": variant, "build_id": manifest["build_id"],
               "package_sha256": digest(tree_hashes(candidate)),
               "suite_sha256": digest(suite), "material": material,
               "packets": tree_hashes(run / "packets")}
+    if rules == RULES:
+        config["author_targets"] = inventory
+        config["scope"] = manifest["scope"]
+    if variant in {"summary", "ablation"}:
+        config["control_kind"] = "summary" if variant == "summary" else control_kind
     write_json(run / "run.json", config)
     return run
 
@@ -140,7 +207,8 @@ def validate_output(output, case):
 
 def collect(run, case_id, answer_file):
     run = Path(run)
-    case = next((c for c in cases_from(read_json(run / "suite.json")) if c["id"] == case_id), None)
+    config = read_json(run / "run.json")
+    case = next((c for c in cases_from(read_json(run / "suite.json"), config["rules_version"]) if c["id"] == case_id), None)
     if not case:
         raise ContractError("unknown case")
     output = read_json(answer_file)
@@ -155,7 +223,8 @@ def collect(run, case_id, answer_file):
 def report_run(run, structural_only=False):
     run = Path(run)
     config, suite = read_json(run / "run.json"), read_json(run / "suite.json")
-    if config.get("rules_version") != RULES or digest(suite) != config.get("suite_sha256"):
+    rules = rules_for(config.get("schema_version"))
+    if config.get("rules_version") != rules or digest(suite) != config.get("suite_sha256"):
         raise ContractError("suite/scoring contract changed; prepare a fresh run")
     from book_skill_common import tree_hashes
     if config.get("packets") is not None:
@@ -168,9 +237,17 @@ def report_run(run, structural_only=False):
     if actual != config["material"]:
         raise ContractError("answering material changed after prepare")
     if config["variant"] == "candidate":
-        if verify_package(run / "skill")["build_id"] != config["build_id"]:
+        manifest = verify_package(run / "skill")
+        if manifest["build_id"] != config["build_id"] or manifest["schema_version"] != config["schema_version"]:
             raise ContractError("candidate build mismatch")
-    cases = cases_from(suite)
+        if rules == RULES and manifest.get("author_targets") != config.get("author_targets"):
+            raise ContractError("author target inventory changed")
+    if config["variant"] in {"summary", "ablation"} and config["mode"] != "diagnostic":
+        raise ContractError("controls cannot authorize release")
+    cases = cases_from(suite, rules)
+    inventory = config.get("author_targets", {})
+    if rules == RULES and (not inventory or any(set(c.get("author_targets", [])) - set(inventory) for c in cases)):
+        raise ContractError("missing/unknown author targets")
     rows, pending, failed, output_hashes, sessions = [], [], [], {}, {}
     environments = set()
     collected = 0
@@ -208,14 +285,27 @@ def report_run(run, structural_only=False):
                                 or review.get("independent") is not True or review.get("blind") is not True
                                 or text(review.get("reviewer"), "reviewer") == output["executor"]):
                             raise ContractError("review is stale or not independently blind")
-                        for dimension in case.get("expected_dimensions", DIMENSIONS):
+                        for dimension in expected(case, rules):
                             score = review.get("dimensions", {}).get(dimension, {})
                             if type(score.get("score")) is not int or score["score"] not in range(4):
                                 raise ContractError(f"missing dimension score: {dimension}")
                             text(score.get("rationale"), f"{dimension}.rationale")
                             if score["score"] < 2:
                                 raise ContractError(f"dimension below completion: {dimension}")
-                        if "expression" in case.get("expected_dimensions", DIMENSIONS):
+                            if dimension in AUTHOR_DIMENSIONS:
+                                excerpt = text(score.get("answer_excerpt"), f"{dimension}.answer_excerpt")
+                                if not any(excerpt in answer for answer in output["answers"]):
+                                    raise ContractError(f"{dimension}: evidence is not in actual answer")
+                        if rules == RULES:
+                            evidence = review.get("author_evidence", {})
+                            if set(evidence) != set(case.get("author_targets", [])):
+                                raise ContractError("review must address each declared author target")
+                            for target, proof in evidence.items():
+                                excerpt = text(proof.get("answer_excerpt"), f"{target}.answer_excerpt")
+                                text(proof.get("rationale"), f"{target}.rationale")
+                                if not any(excerpt in answer for answer in output["answers"]):
+                                    raise ContractError(f"{target}: evidence is not in actual answer")
+                        if "expression" in expected(case, rules):
                             for dimension in STYLE_DIMENSIONS:
                                 score = review.get("expression", {}).get(dimension, {})
                                 if score.get("status") == "not_applicable":
@@ -245,6 +335,16 @@ def report_run(run, structural_only=False):
             pending.append("missing_task_groups:" + ",".join(sorted(set(CASE_GROUPS) - groups)))
         if {"C02", "C03", "C05", "C13", "C14"} - held:
             pending.append("held_out_coverage")
+        if rules == RULES and not structural_only:
+            coverage = {target: set() for target in inventory}
+            for case, row in zip(cases, rows):
+                if row["status"] != "passed":
+                    continue
+                for target in case.get("author_targets", []):
+                    coverage[target].add(case["author_condition"])
+            for target, conditions in coverage.items():
+                if conditions != {"normal", "changed"}:
+                    pending.append("author_target_coverage:" + target)
     elif not structural_only:
         pending.append("diagnostic_run_only")
     if not structural_only:
@@ -262,7 +362,7 @@ def report_run(run, structural_only=False):
     state = "failed" if failed else "pending" if pending else "passed"
     if structural_only:
         state = "structural_passed" if not pending and not failed else state
-    return {"schema_version": SCHEMA, "rules_version": RULES,
+    result = {"schema_version": config["schema_version"], "rules_version": rules,
             "status": state, "build_id": config["build_id"], "variant": config["variant"],
             "package_sha256": config["package_sha256"],
             "suite_sha256": config["suite_sha256"], "mode": config["mode"],
@@ -270,6 +370,41 @@ def report_run(run, structural_only=False):
             "collected": collected, "missing_outputs": len(cases) - collected,
             "passed": sum(row["status"] == "passed" for row in rows),
             "pending": pending, "failed": failed, "cases": rows, "output_sha256": output_hashes}
+    if rules == RULES:
+        result["scope"] = config["scope"]
+        result["author_targets"] = inventory
+        result["author_certification"] = "failed" if state == "failed" else (
+            "passed" if state == "passed" and config["variant"] == "candidate" else "pending")
+    return result
+
+
+def blind_packets(run, out):
+    """Hide material/executor labels; preserve every character of actual answers."""
+    run, out = Path(run), Path(out)
+    config, suite = read_json(run / "run.json"), read_json(run / "suite.json")
+    if digest(suite) != config["suite_sha256"]:
+        raise ContractError("suite changed before anonymization")
+    if out.exists():
+        raise ContractError("blind packet directory exists; preserve the prior review batch")
+    records, mapping = {}, {}
+    for case in cases_from(suite, config["rules_version"]):
+        path = run / "outputs" / f"{case['id']}.json"
+        if not path.is_file():
+            continue
+        output = read_json(path)
+        validate_output(output, case)
+        oid = digest(output)
+        anonymous_id = digest({"answer": oid, "case": digest(case)})[:20]
+        records[anonymous_id] = {"case": case, "answers": output["answers"],
+                                 "answer_sha256": oid, "answers_sha256": digest(output["answers"]),
+                                 "rubric_sha256": digest(case)}
+        mapping[anonymous_id] = {"case_id": case["id"], "output": str(path.resolve()), "answer_sha256": oid}
+    if not records:
+        raise ContractError("no actual outputs to anonymize")
+    for aid, record in records.items():
+        write_json(out / "packets" / f"{aid}.json", record)
+    write_json(out / "host-map.json", mapping)
+    return out / "packets"
 
 
 def main():
@@ -278,7 +413,8 @@ def main():
     prep = sub.add_parser("prepare")
     for name in ("candidate", "suite", "run-dir"):
         prep.add_argument(f"--{name}", required=True, type=Path)
-    prep.add_argument("--variant", choices=("candidate", "none", "legacy", "retrieval"), default="candidate")
+    prep.add_argument("--variant", choices=("candidate", "none", "legacy", "retrieval", "summary", "ablation"), default="candidate")
+    prep.add_argument("--control-kind", choices=("without_habits", "without_expression", "swapped_expression", "without_examples"))
     prep.add_argument("--baseline", type=Path)
     prep.add_argument("--source", type=Path)
     prep.add_argument("--mode", choices=("acceptance", "diagnostic"), default="acceptance")
@@ -286,6 +422,9 @@ def main():
     col.add_argument("--run-dir", required=True, type=Path)
     col.add_argument("--case", required=True)
     col.add_argument("--answer", required=True, type=Path)
+    blind = sub.add_parser("blind", help="bind full anonymous answers to actual collected output hashes")
+    blind.add_argument("--run-dir", required=True, type=Path)
+    blind.add_argument("--out-dir", required=True, type=Path)
     for cmd in ("score-structural", "report"):
         parser = sub.add_parser(cmd)
         parser.add_argument("--run-dir", required=True, type=Path)
@@ -293,10 +432,13 @@ def main():
     try:
         if args.command == "prepare":
             print(prepare(args.candidate, args.suite, args.run_dir, args.variant,
-                          args.baseline, args.source, args.mode))
+                          args.baseline, args.source, args.mode, args.control_kind))
             return 0
         if args.command == "collect":
             print(collect(args.run_dir, args.case, args.answer))
+            return 0
+        if args.command == "blind":
+            print(blind_packets(args.run_dir, args.out_dir))
             return 0
         result = report_run(args.run_dir, args.command == "score-structural")
         filename = "structural.json" if args.command == "score-structural" else "acceptance.json"

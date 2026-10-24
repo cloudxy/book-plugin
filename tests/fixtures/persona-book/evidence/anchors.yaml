@@ -1,0 +1,45 @@
+schema_version: book-skill/2
+source:
+  raw_sha256: 42192e4cee4725da204facdb699a2ebc35e96bc75932f677fe37e324199dcc75
+  text_sha256: c3526c0ac557c48c7f61942365a0ae90663666a7e285622b990b8321b43a75ea
+  normalization: qnorm-v1
+anchors:
+- id: BKE-conditions
+  locator: 第一段
+  quote: 过河先看水势，再验船身。
+  start: 11
+  context:
+    start: 11
+    text: 过河先看水势，再验船身。
+    speaker: 合成论说者
+    audience: 试验读者
+    period: 原创合成，无历史时期
+    level: 合成正文论说
+  episodes:
+  - E-all
+- id: BKE-scope
+  locator: 第二段
+  quote: 一程试稳，只认得这一程，不可说处处能渡。
+  start: 36
+  context:
+    start: 36
+    text: 一程试稳，只认得这一程，不可说处处能渡。
+    speaker: 合成论说者
+    audience: 试验读者
+    period: 原创合成，无历史时期
+    level: 合成正文论说
+  episodes:
+  - E-all
+- id: BKE-update
+  locator: 第三段
+  quote: 船已稳、水已缓，若仍借修船不肯出发，修船便成了躲事。
+  start: 56
+  context:
+    start: 56
+    text: 船已稳、水已缓，若仍借修船不肯出发，修船便成了躲事。
+    speaker: 合成论说者
+    audience: 试验读者
+    period: 原创合成，无历史时期
+    level: 合成正文论说
+  episodes:
+  - E-all

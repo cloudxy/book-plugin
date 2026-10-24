@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "book-workflow",
-  "version": "0.3.0",
-  "description": "知识蒸馏工作流：重建书中思想、叙事与口吻，核查来源，构建候选并验证真实回答后交付；程序能力继续经仓颉与四闸核验。机械检查在本地执行，语义评审与行为试答由宿主模型或人工完成。",
+  "version": "0.4.0",
+  "description": "知识蒸馏工作流：重建作者的注意习惯、视角、推演与行文路径，联合生成新问题回答；独立核查来源、作者认知与表达后发布被测原包，适用程序继续经仓颉与四闸。",
   "author": {
     "name": "xuyun"
   },

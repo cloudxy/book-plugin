@@ -1,0 +1,136 @@
+schema_version: book-skill/2
+authored_by: synthetic-fixture-author
+book:
+  id: thinking-book
+  title: 渡口试验
+  author: book-workflow 原创合成
+  edition: 测试夹具第一版
+  kind: argumentative
+  description: Synthetic author contract fixture; never a real author evaluation.
+scope:
+  coverage: synthetic-selected-system
+  includes: 行动条件、有限检验及条件更新
+  excludes: 真实航运、其他领域的技术程序及未给定事实
+  reading: 完整原创合成短来源；非真实书籍
+  reconstruction: 只重建条件与有限检验的短论说
+  runtime: 合成解释与更新
+  acceptance: 仅合同夹具，无实际模型验收
+procedures:
+  status: not_applicable
+  reason: 本合成试验不含计算或操作程序。
+concerns:
+- id: V-action
+  statement: 行动要有条件，也要在条件具备后承担。
+  epistemic_status: reconstructed
+  anchors:
+  - BKE-conditions
+  - BKE-update
+  conditions: 仅适用本合成来源的有限条件判断
+  speaker: 合成论说者
+concepts:
+- id: K-scope
+  statement: 一次检验有有限范围。
+  epistemic_status: reconstructed
+  anchors:
+  - BKE-scope
+  conditions: 仅适用本合成来源的有限条件判断
+  speaker: 合成论说者
+claims:
+- id: C-test
+  statement: 不能由一次局部成功推出所有场景成功。
+  epistemic_status: reconstructed
+  anchors:
+  - BKE-scope
+  conditions: 仅适用本合成来源的有限条件判断
+  speaker: 合成论说者
+relations:
+- id: R-scope
+  statement: 检验范围限制成功结论范围。
+  epistemic_status: reconstructed
+  anchors:
+  - BKE-scope
+  conditions: 仅适用本合成来源的有限条件判断
+  speaker: 合成论说者
+  from: K-scope
+  to: C-test
+  type: constrains
+operators:
+- id: O-reassess
+  statement: 随条件变化重新判断准备和行动。
+  epistemic_status: reconstructed
+  anchors:
+  - BKE-conditions
+  - BKE-scope
+  - BKE-update
+  conditions: 仅适用本合成来源的有限条件判断
+  speaker: 合成论说者
+  intent: 判断当前障碍
+  inputs: 当前条件、已完成的检验与任务目标
+  uses:
+  - V-action
+  - R-scope
+  move: 区分未具备条件与条件已具备，再限制检验能支持的结论。
+  warrant: 缺少条件时需准备，条件已具备时不能无限重复准备；有限检验只支持有限结论。
+  alternatives: 也可能有另一个未提供的风险，应核对而不猜测。
+  blocked_by: 条件真实性无法核实且会改变判断。
+  revise_when: 新事实改变准备是否完成。
+  examples:
+  - EX-apply
+  - EX-update
+conflicts: []
+core:
+  include:
+  - P-assess
+  text: 先看行动需要的条件是否具备。未具备时补条件；具备后不以准备无限拖延。一次局部检验只支持那个范围，新事实改变条件时重新判断，不编造未知风险。
+author:
+  portrait: 合成论说者以水、船和一程的区别，检视喝彩与行动条件的落差，再用条件反转批评无限准备。
+  scope: 仅原创三段合成论说，不能外推为真实作者人格。
+  voice_policy: 合成作者正文，无人物或引述者。
+  limits: 三段不证明跨书稳定性；所有评分仅测试合同。
+habits:
+- id: H-conditions
+  statement: 面对以喝彩替代准备或把准备无限延长的说法，返回具体条件并检查它有没有改变。
+  epistemic_status: reconstructed
+  anchors: &id001
+  - BKE-conditions
+  - BKE-scope
+  - BKE-update
+  conditions: 仅适用本合成来源的有限条件判断
+  speaker: 合成论说者
+  episodes: &id002
+  - E-all
+  trigger: 热情、一次试验或准备名义掩盖当前条件。
+  move: 将水势、船身和已经验过的一程分别摆明，再以条件是否改变来转折。
+  effect: 同一件准备工作在不同条件下得到不同判断，表达的转折承担判断修正。
+  alternatives: 并非所有谨慎都是逃避；来源明写船已稳、水已缓这一前提。
+  counterevidence: 船未稳时先补板，不能把末段反拖延推广到尚未准备好。
+  revise_when: 水势、船身或检验范围改变。
+  stability: local
+paths:
+- id: P-assess
+  statement: 依据已知条件组合识别、限定和更新，并以条件对照成文。
+  epistemic_status: reconstructed
+  anchors: *id001
+  conditions: 仅适用本合成来源的有限条件判断
+  speaker: 合成论说者
+  episodes: *id002
+  trigger: 热情、一次试验或准备名义掩盖当前条件。
+  move: 将水势、船身和已经验过的一程分别摆明，再以条件是否改变来转折。
+  effect: 同一件准备工作在不同条件下得到不同判断，表达的转折承担判断修正。
+  alternatives: 并非所有谨慎都是逃避；来源明写船已稳、水已缓这一前提。
+  counterevidence: 船未稳时先补板，不能把末段反拖延推广到尚未准备好。
+  revise_when: 水势、船身或检验范围改变。
+  stability: local
+  task: 判断是否行动或解释为什么判断改变。
+  selection: 当前障碍是条件未具备时先看缺口，已具备而仍准备时检查准备的用途。
+  composition: 联结具体物件、一次检验的范围和前后条件；按用户所问选择解释或决定，不固定全列三步。
+  habits:
+  - H-conditions
+  operators:
+  - O-reassess
+  expression:
+  - S-conditions
+  examples:
+  - EX-source
+  - EX-apply
+  - EX-update

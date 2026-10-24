@@ -1,10 +1,10 @@
 {
   "name": "book-workflow",
-  "version": "0.3.0",
-  "description": "知识蒸馏工作流：重建书中思想、叙事与口吻，核查来源，构建候选并验证真实回答后交付；程序能力继续经仓颉与四闸核验。机械检查在本地执行，语义评审与行为试答由宿主模型或人工完成。",
+  "version": "0.4.0",
+  "description": "知识蒸馏工作流：重建作者的注意习惯、视角、推演与行文路径，联合生成新问题回答；独立核查来源、作者认知与表达后发布被测原包，适用程序继续经仓颉与四闸。",
   "description_i18n": {
-    "en": "Distill a book into source-grounded thinking, narrative voice and worked applications. Build private candidates, evaluate actual answers, then publish the tested payload. Procedural capabilities retain cangjie and the four local gates; semantic review and behavior tests use the host model or human reviewers.",
-    "zh-CN": "知识蒸馏工作流：重建书中思想、叙事与口吻，核查来源，构建候选并验证真实回答后交付；程序能力继续经仓颉与四闸核验。机械检查在本地执行，语义评审与行为试答由宿主模型或人工完成。"
+    "zh-CN": "知识蒸馏工作流：重建作者的注意习惯、视角、推演与行文路径，联合生成新问题回答；独立核查来源、作者认知与表达后发布被测原包，适用程序继续经仓颉与四闸。",
+    "en": "Reconstruct an author through complete reasoning and narrative episodes, cognitive habits, variable paths and joint expression. Verify sources and actual author cognition and expression before publishing the tested package. Procedural capabilities retain cangjie and the four local gates."
   },
   "author": {
     "name": "xuyun"

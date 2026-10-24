@@ -1,17 +1,17 @@
 # book-workflow
 
-book-workflow 0.3.0 将书籍、长视频或播客蒸馏成可用于新问题的 Skill：书中思想参与理解、推演与修正，叙事方式和口吻参与成文。原文证据与程序卡为回答提供查证和执行支持。
+book-workflow 0.4.0 从书籍、长视频或播客重建作者的注意习惯、问题视角、依据、取舍和行文路径，联合生成能够回答新问题的 Skill。范围是这部作品呈现的作者，原文证据与程序卡提供按需查证和执行支持。
 
 日常提问默认运用已蒸馏的思想直接分析处境，形成原书未写过的解释、判断或建议；问原话、出处、情节或遇到实质来源疑点时再回源。思想核心和应用范例应展示这种运用，引用名句、拼接原文或只列不能推断的事项不算完成。
 
 ```mermaid
 flowchart LR
-    A[原书与范围] --> B[思想、叙事与完整应用范例]
+    A[整书与声音分层] --> B[完整构思片段、作者习惯、路径与联合范例]
     B --> C[逐字来源与独立语义复核]
     D[仓颉程序能力] --> E[原程序四闸]
     C --> F[私有候选包]
     E --> F
-    F --> G[实际回答、独立评审与用户口吻审阅]
+    F --> G[实际回答、作者认知与表达独立评审、用户审阅]
     G --> H[发布被测原包]
     G -->|具体失败| B
 ```
@@ -35,11 +35,11 @@ flowchart LR
 ## 运行路径
 
 1. **整书阅读。** 固定原文版本、译者和范围，独立建立重要思想、论证、分歧和表达样态的覆盖底账。缺原文不蒸馏，污染与未核实章节单独登记。
-2. **联合重建。** 写连贯思想核心、概念关系与思想动作；从上下文提取视角、展开次序和口吻。完整范例展示原书如何形成认识、怎样迁移以及条件变化怎样改判。
+2. **联合重建。** 记录完整论证或场景，提出作者习惯假设并寻找竞争解释和反证，区分局部与跨情境倾向。写作者画像、可变推演与写作路径及连贯联合核心；范例展示新问题求解和关键条件改变。没有真实命题关系就留空，不为小说凑哲学体系。
 3. **程序与出图。** 适用程序沿仓颉阶段0–4产出 Bundle，按房规绘 SVG。无程序不凑空 Bundle。四件 vendor 源码保持原样。
 4. **来源核查。** 引文与上下文逐字匹配，独立复核语义、说话者、关系、核心、表达、范例和覆盖。程序另走桥接与四闸。
-5. **候选和实测。** 候选入口内嵌思想及口吻，按需读扩展模型和范例。干净会话实答未见任务，比较旧版、无该书 Skill、检索基线与新版，独立评审实际输出。
-6. **验收和发布。** 思想、推演、效用与表达分别达标，用户审阅目标口吻后发布与实测完全一致的候选。缺输出或评审时保持待完成，保留断点。
+5. **候选和实测。** 候选入口内嵌作者定向、联合核心及表达机制，按需展开模型和范例。干净会话实答未见任务，比较无Skill、实际旧版、充分检索、摘要模仿和新版，关键题复跑及材料移除仅作诊断。匿名评审保留完整回答并绑定实际输出。
+6. **验收和发布。** 作者认知、作者表达、忠实、推演与效用分别达标，适用项低于2不能平均通过。正式15组覆盖运行习惯、路径和表达的正常/变化情境，用户审阅后发布同一原包。分别报告阅读、重建、运行、实际验收与发布状态。
 
 新整书产品初版只有一个发现入口。程序调用索引未命中，不代表思想不适用；原 single 编译器“一张卡、未命中即停”的总路由不进入整书组合包。用户明确选择原程序 single/pack 时，保留该模式，其通过结果只描述程序能力。
 
@@ -56,6 +56,7 @@ bridge/
   build_book_skill.py               candidate / verify / publish / procedures
   eval_book_skill.py                prepare / collect / score-structural / report
   book_skill_common.py              版本、输入与交付包合同
+  author_persona.py                 完整片段、作者习惯、路径联结与生成画像
   cangjie_to_dsh.py                 程序桥接与逐字回源
   run_audit.py                      原四闸及绑定输入的机器回执
   check_diagrams.py                 SVG 引用与 lint
@@ -75,6 +76,8 @@ books/<slug>/
   BOOK_OVERVIEW.md  coverage-audit.md  PIPELINE_STATE.md
   thinking/model.yaml  thinking/EXAMPLES.md
   thinking/CORE.md                  生成视图，不手改
+  reading/episodes.yaml             完整构思片段，参与输入哈希
+  AUTHOR_PROFILE.md                 生成画像，不手改
   expression/PROFILE.md
   evidence/anchors.yaml
   .cangjie/capabilities/            有程序时存在
@@ -90,7 +93,7 @@ Python ≥3.10，PyYAML、PyMuPDF、html-css-to-image 0.3.0；Node 用于 svg-li
 ```bash
 python3 scripts/bootstrap.py <工作区根>
 make doctor
-make e2e                 # 原程序 12 项 + 新思想/构建/验收合同测试
+make e2e                 # 原程序 + v1兼容 + v2作者合同；合成测试不代表真人作者效果
 ```
 
 拆书本身由宿主按技能读取原文和写入思想内容，CLI 不会用正则自动生成书的思想。文件合同见 [重建指南](skills/book-workflow/references/distill-thinking.md)。
@@ -110,6 +113,7 @@ make audit TASK=<slug>
 make candidate BOOK=books/<slug> SRC=<原文> REVIEW=<评审.json>
 .venv/bin/python bridge/eval_book_skill.py prepare --candidate <候选目录> --suite <cases.yaml> --run-dir <评测目录>
 .venv/bin/python bridge/eval_book_skill.py collect --run-dir <评测目录> --case C02-01 --answer <真实回答.json>
+.venv/bin/python bridge/eval_book_skill.py blind --run-dir <评测目录> --out-dir <匿名评审目录>
 make eval-report RUN=<评测目录>
 make publish CANDIDATE=<候选目录> ACCEPTANCE=<评测目录/acceptance.json> OUT=<安装目标>
 
@@ -131,8 +135,10 @@ make lint-svg FILE=<图.svg>
 
 html-css-to-image 是可选栅格客户端，只在明确要求且有 `HCTI_API_ID` 与 `HCTI_API_KEY` 时处理书树外 HTML/CSS；无密钥不调用，不进四闸。dsh 侧 AGPL 源码保持完整且不修改，通过进程级调用组合；其他 vendor 的许可证与再分发边界见 AGENTS。
 
-## 0.3.0 的验证范围
+## 版本与验证范围
 
-自有审计、候选构建、评测记录与发布限制已接入。合同回归使用原创合成夹具，验证缺失、篡改和旧评审复用会被拦截；这些测试不代表真实书籍已经会思考。
+0.4.0默认使用book-skill/2、book-eval/2，新增完整推演片段、作者画像、习惯与可变路径，以及作者认知/表达的答文证据。v1仍按原合同读取与构建，包会标thinking-v1，不能因插件升级自动获得作者分身身份。迁移须补读、重建并重新核查，旧安装保留快照。
+
+合同回归使用原创合成夹具，验证来源漂移、路径断链、作者低分、缺目标覆盖及旧评审复用会被拦截；这些测试不代表真实书籍已经完成作者分身验收。
 
 真实书籍试点在私有目录进行，范围、实际输出、失败及用户口吻状态分别记录。旧书不会因插件升级自动完成思想和文风补蒸馏。设计背景、完整示例和15组验收方法见 [docs/README.md](docs/README.md)。

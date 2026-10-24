@@ -1,13 +1,13 @@
 # AGENTS.md — book-workflow 工作区
 
-book-workflow：知识蒸馏闭环工作流插件，v0.3.0。**整书思想与叙事联合重建 → 来源与语义核查 → 私有候选 → 实际回答评测 → 发布被测原包。** 程序能力继续由 cangjie-skill 生成、dsh 三闸+图件闸核验；svg-diagram 负责房规 SVG。 html-css-to-image 0.3.0 是可选栅格出图，无密钥不调用、不进四闸。 本目录既是蒸馏工作区，也是插件的**开发与编辑现场**——skills/commands/bridge/vendor 就在这里更新；zcode 经 `~/.zcode/cli/config.json` 的 `plugins.dirs` 直接注册本目录加载（改源文件后开新会话即生效，无副本同步）。上游 https://github.com/cloudxy/book-plugin 是唯一共同源；其他机器按需克隆到 `~/.zcode/local-plugins/book-workflow` 并注册该克隆，`git pull` 后开新会话加载更新。
+book-workflow：知识蒸馏闭环工作流插件，v0.4.0。**整书与声音分层、完整构思片段、作者习惯与路径联合重建 → 来源与语义核查 → 私有候选 → 实际回答评测 → 发布被测原包。** 程序能力继续由 cangjie-skill 生成、dsh 三闸+图件闸核验；svg-diagram 负责房规 SVG。 html-css-to-image 0.3.0 是可选栅格出图，无密钥不调用、不进四闸。 本目录既是蒸馏工作区，也是插件的**开发与编辑现场**——skills/commands/bridge/vendor 就在这里更新；zcode 经 `~/.zcode/cli/config.json` 的 `plugins.dirs` 直接注册本目录加载（改源文件后开新会话即生效，无副本同步）。上游 https://github.com/cloudxy/book-plugin 是唯一共同源；其他机器按需克隆到 `~/.zcode/local-plugins/book-workflow` 并注册该克隆，`git pull` 后开新会话加载更新。
 
 ## 目录
 
 ```
 book-workflow/
 ├── docs/                   仓库文档，不加载为技能。导航见 docs/README.md
-│   └── designs/judgment/   0.3.0 思想推演与叙事口吻设计及验收方法
+│   └── designs/            思想推演、作者分身设计及验收方法
 ├── skills/book-workflow/   工作流权威定义（思想/叙事、程序、审计、候选、实测与发布）
 ├── skills/book*/          book / book-audit / book-diagram 快捷技能，转到 commands/
 ├── commands/               三个斜杠命令：book（全流程）、book-audit（只审计）、book-diagram（只出图）
@@ -56,7 +56,7 @@ Codex 若显示插件命名空间，按 `/skills` 中的完整名称调用，例
 - **单一事实源**：skills/commands/bridge/vendor 只在本目录改；五端挂载点全是软链或清单，改完即更新，无副本同步。
 - **同步走 GitHub**：上游 `cloudxy/book-plugin`；改动 `git pull → commit → push`（pre-commit 钩子兜底拦截私有内容）。其他机器是否克隆、克隆到哪里，由各机器自定。
 - **vendor 升级**：替换 `vendor/<名>/` → 递增 `.zcode-plugin/plugin.json` 等四份清单版本与 SKILL.md 的 `vendors:` 登记 → `make doctor && make e2e` 回归。
-- **回归**：`make e2e`（原程序 12 项 + `tests/thinking_test.py` 合同测试）+ `make doctor`。合成结构测试不能冒充真实书籍的思考或口吻通过。
+- **回归**：`make e2e`（原程序 12 项 + `tests/thinking_test.py` / `tests/persona_test.py` 合同测试）+ `make doctor`。合成结构测试不能冒充真实书籍的思考或口吻通过。
 
 ### vendor 许可证（再分发边界）
 

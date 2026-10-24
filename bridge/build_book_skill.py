@@ -13,7 +13,7 @@ from pathlib import Path
 import yaml
 
 from book_skill_common import (ContractError, SCHEMA, VERSION, bridge_state, contained,
-    digest, engine_hash, input_snapshot, json_bytes, read_json, read_yaml, section,
+    digest, engine_hash, input_snapshot, json_bytes, procedure_hash, source_hashes, read_json, read_yaml, section,
     slug, tree_hashes, verify_package, write_json)
 from thinking_audit import audit, validate
 
@@ -43,12 +43,35 @@ unresolved 条目仅作为缺口或待查解释，不作为已经核验的断言
 - [阅读范围与缺口](references/overview.md)
 """
 
+PERSONA_RUNTIME = """## 运用方式
+
+由上面的作者定向、联合核心和表达机制共同组织当前回答。让它们实际决定注意什么、怎样重新理解题目、怎样取舍与成文；按问题选择并组合路径，篇幅和任务改变时仍保留关键习惯。展开的次序和收束方式由本书与当前问题决定。
+直接形成当下的解释、判断、建议或作品。新问题没有原书原句，也可以用已重建的关系与当前事实作新的、有条件的判断。需要时展开相关路径、反证和完整范例，把范例迁移到关系相似而表面不同的处境。
+作品中的价值、性情和张力影响取舍；与用户目标发生实质冲突时把取舍说明白。新的事实应修正依赖它的判断；稳定的认识倾向不随意重置。保留有理由的锋芒、犹疑或留白，适应解释、闲谈、行动与写作的不同需要。
+当前事实由当前材料承担，作者、叙述者、人物和编者各有归属。自己的新判断不冒称原作者的新表态；真实对话不虚构用户经历，创作任务才构造虚构场景。unresolved条目保留为缺口。
+用户要原话、出处或情节归属，或来源疑点会改变判断时，按需查短证据与上下文，再视需要查全文。日常回答运用已审机制，不逐句找相似名句。当前世界的变化另行核实，程序按其真实适用范围调用。
+多轮及压缩后保持作者定向、当前任务和已知事实，结合新增事实继续。呈现回答与关键理由，无须披露完整内部思维。
+
+## 按需展开
+
+- [作者画像、习惯、路径与局限](references/AUTHOR_PROFILE.md)
+- [思想、习惯与可变路径](references/thinking/model.yaml)
+- [完整联合应用与条件变化](references/thinking/EXAMPLES.md)
+- [表达机制及适用语体](references/expression/PROFILE.md)
+- [短证据与声音层次](references/evidence/anchors.yaml)
+- [完整推演片段的阅读记录](references/reading/episodes.yaml)
+- [阅读与重建范围](references/overview.md)
+"""
+
 
 def check_procedures(book, source, ws, task):
     """A stale PASS line in Markdown cannot authorize a new Bundle."""
-    current = input_snapshot(book, source)
+    # The explicitly requested legacy program route has no author model.
+    # Its gates bind the Bundle and actual source, not thinking-only inputs.
+    current = {"procedures": procedure_hash(book)}
     if current["procedures"] is None:
         return {"status": "not_applicable"}
+    current["source"] = source_hashes(source)
     tdir = Path(ws) / ".work" / slug(task)
     receipt = read_json(tdir / "audit-result.json")
     manifest = read_json(tdir / "bridge-manifest.json")
@@ -82,6 +105,9 @@ def build_candidate(book, source, ws, review=None, task=None):
                 or (receipt["status"] != "not_applicable"
                     and manifest["procedures"].get("gate_receipt_sha256") != digest(receipt))):
             raise ContractError("existing candidate provenance is stale")
+        (book / "thinking/CORE.md").write_bytes((previous / "references/thinking/CORE.md").read_bytes())
+        if model["schema_version"] == SCHEMA:
+            (book / "AUTHOR_PROFILE.md").write_bytes((previous / "references/AUTHOR_PROFILE.md").read_bytes())
         return previous
     files = {}
     def add(rel, content):
@@ -95,6 +121,11 @@ def build_candidate(book, source, ws, review=None, task=None):
         add(dst, contained(book, src).read_bytes())
     core = model["core"]["text"].strip()
     add("references/thinking/CORE.md", "# 思想核心\n\n" + core + "\n")
+    if model["schema_version"] == SCHEMA:
+        from author_persona import author_profile
+        add("references/reading/episodes.yaml", contained(book, "reading/episodes.yaml").read_bytes())
+        add("references/AUTHOR_PROFILE.md", author_profile(model))
+        add("references/author-targets.json", json_bytes(data["author_targets"]))
     if (book / "GLOSSARY.md").is_file():
         add("references/glossary.md", (book / "GLOSSARY.md").read_bytes())
     provenance = {"status": "not_applicable"}
@@ -141,7 +172,10 @@ def build_candidate(book, source, ws, review=None, task=None):
     entry = "---\n" + yaml.safe_dump(fm, allow_unicode=True, sort_keys=False) + "---\n\n"
     entry += f"# {model['book']['title']}\n\n"
     entry += f"范围：{model['scope']['includes']}。\n\n未覆盖：{model['scope']['excludes']}。\n\n"
-    entry += "## 思想核心\n\n" + core + "\n\n## 叙事与口吻\n\n" + profile + "\n\n" + RUNTIME
+    if model["schema_version"] == SCHEMA:
+        entry += "## 作者定向\n\n" + model["author"]["portrait"] + "\n\n"
+    runtime = PERSONA_RUNTIME if model["schema_version"] == SCHEMA else RUNTIME
+    entry += "## 思想核心\n\n" + core + "\n\n## 叙事与口吻\n\n" + profile + "\n\n" + runtime
     if receipt["status"] != "not_applicable":
         entry += "\n- [程序用途与调用索引](references/procedures/INDEX.md)\n"
     if "references/glossary.md" in files:
@@ -151,11 +185,14 @@ def build_candidate(book, source, ws, review=None, task=None):
     if input_snapshot(book, source) != data["snapshot"]:
         raise ContractError("source inputs changed during build; discard mixed candidate and retry")
     build_id = digest(hashes)
-    manifest = {"schema_version": SCHEMA, "version": VERSION, "build_id": build_id,
+    manifest = {"schema_version": model["schema_version"], "version": VERSION, "build_id": build_id,
+                "product_kind": "author-persona" if model["schema_version"] == SCHEMA else "thinking-v1",
                 "book_id": bid, "scope": model["scope"], "input_sha256": data["input_sha256"],
                 "inputs": data["snapshot"], "engine_sha256": engine_hash(),
                 "source_review_sha256": reviewed["review_sha256"], "procedures": provenance,
                 "files": hashes}
+    if model["schema_version"] == SCHEMA:
+        manifest["author_targets"] = data["author_targets"]
     package = build_root / "package" / bid
     if package.exists():
         old = verify_package(package)
@@ -171,6 +208,8 @@ def build_candidate(book, source, ws, review=None, task=None):
     verify_package(package)
     # CORE is a generated view; edits never create another source of truth.
     (book / "thinking/CORE.md").write_bytes(files["references/thinking/CORE.md"])
+    if "references/AUTHOR_PROFILE.md" in files:
+        (book / "AUTHOR_PROFILE.md").write_bytes(files["references/AUTHOR_PROFILE.md"])
     write_json(build_root / "source-audit.json", reviewed)
     return package
 

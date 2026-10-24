@@ -1,0 +1,22 @@
+schema_version: book-skill/2
+source:
+  raw_sha256: 42192e4cee4725da204facdb699a2ebc35e96bc75932f677fe37e324199dcc75
+  text_sha256: c3526c0ac557c48c7f61942365a0ae90663666a7e285622b990b8321b43a75ea
+  normalization: qnorm-v1
+episodes:
+- id: E-all
+  start: 0
+  end: 82
+  span_sha256: c3526c0ac557c48c7f61942365a0ae90663666a7e285622b990b8321b43a75ea
+  locator: 完整原创合成来源，标题及三段
+  voice:
+    level: author
+    speaker: 原创合成论说者
+  task: 分清准备不足、试验范围和借准备拖延。
+  progression: 先用水势船身将喝彩和条件分开；中段限一程试验；末段改变水船条件，使继续修船的作用反转。
+  reading_effect: 读者不能只记先准备，也须检查准备何时已经完成。
+  completeness: 三段短合成来源全部读到，非真实作者构思证据。
+  anchors:
+  - BKE-conditions
+  - BKE-scope
+  - BKE-update
