@@ -6,6 +6,7 @@
 
 | 要找什么 | 入口 |
 |---|---|
+| 待审 作者分身蒸馏：隐藏思维习惯、作者视角、推演路径与文风的升级方案 | [作者分身升级方案评审稿](designs/author-persona/upgrade.md) |
 | 0.3.0 第三轮方案：现有问题、思想推演、叙事口吻与实施顺序 | [升级方案](designs/judgment/upgrade.md) |
 | 具体预期：新问题、条件变化、叙事解释、简答与入口正文 | [完整问答示例](designs/judgment/examples.md) |
 | 验证增益：陌生任务、检索基线、反事实、盲评与消融 | [验收方法](designs/judgment/methodology.md) |
