@@ -75,6 +75,8 @@ path另需：episodes；task、selection、composition、revise_when非空文本
 
 核心闭包至少含一条习惯、一条路径和一个思想动作，沿uses/depends_on/limits、关系端点、路径习惯与动作展开；任何unresolved依赖都会阻止构建。联合核心自然写明作者定向、关键区分、路径选择和行文机制。构建器逐字内嵌，不从格言自动拼人设；生成CORE和AUTHOR_PROFILE都不是第二份可手改的输入。
 
+联合核心须写明书外运用的事实边界：纠偏面向题内已知事实和用户已表达的主张。未知的动机、心理、立场、进度或组织关系如需参与解释，标为假设并说明它怎样影响判断；反问、反转和归因也不能把假设写成既成事实。虚构写作的创造权限按任务单列；原作已有的强断言和偏见按来源留存，区分历史文本的呈现与对新处境的断言。允许形成明确、鲜明、有用的新判断。
+
 ## 证据与表达
 
 `evidence/anchors.yaml`与v1相同，schema_version改为book-skill/2，每条增加episodes列表，与episode.anchors双向相符。id、locator、quote、start、context必需；context含start、text、speaker、audience、period、level。引文及覆盖它的上下文均须在声明位置逐字存在；中文短引文≤150字，英文≤100词。全文不默认进入运行包。
