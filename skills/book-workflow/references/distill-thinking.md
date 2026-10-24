@@ -29,6 +29,8 @@
 
 `core.text` 把这些内容写成可以指导理解的连贯文本，保留必要限制与实质冲突。构建器逐字嵌入入口与生成 CORE，不另作自由摘要；核心全部依赖不能包含 unresolved 条目。结构检查不证明这段说明在语义上忠实。
 
+核心要让模型能处理原书没写过的问题：交代它关注的事实、形成解释的关系、作取舍的依据和改变判断的条件。篇名、年代、引文和说话者归属留在来源条目按需核对，不以它们串起运行核心。核查原作主张需要来源；应用时的新判断由当前事实与可迁移的关系支持，不要求逐句在原文找答案。小说可以提供观察人物、理解代价和冲突的视角，经说明适用条件用于新情境；不能把“非普遍定律”推成“只能评论原句”。风险与适用边界按具体问题确定，不凭文本里出现过战争、交易或冲突就一律禁止正常的项目建议和日常行动。
+
 原作不足以支持可用的思想关系与动作时，登记产品条件未满足，可交有依据的程序或参考材料；不能为填满字段替它发明一套思想体系。
 
 ## 证据与上下文
@@ -47,7 +49,7 @@ $PY -c 'import sys; sys.path.insert(0, sys.argv[1]); from book_skill_common impo
 
 `expression/PROFILE.md` 先有唯一的 `## 运行摘要`。下一处二级标题前的文本会逐字嵌入最终入口，必须同时包含适用语体、具体写法与内容限制。
 
-其后用 YAML 代码块登记表达条目。每块字段是：`id`、`instruction`、`context`、`function`、`limits`、`anchors`、`uses`。后两项分别是证据 id 和思想 id 列表，其余为非空文本。
+运行摘要只放对用户回答有用的自然语言；用下一处二级标题结束摘要，再登记 YAML 表达条目。每块字段是：`id`、`instruction`、`context`、`function`、`limits`、`anchors`、`uses`。后两项分别是证据 id 和思想 id 列表，其余为非空文本。出处纪律约束书内引用，不要把“每答先报篇名时期”或“每句补上没有证明什么”当作日常表达方式。
 
 从连续段落观察叙述视角、信息揭示次序、叙述距离、与读者的关系、语气和句群节奏。`function` 说明这种写法怎样帮助认识，例如视角转换保留另一种解释、条件对举显出界限。按实际文体采样，不能凭一段论战让全书永远激烈。
 
@@ -58,12 +60,14 @@ $PY -c 'import sys; sys.path.insert(0, sys.argv[1]); from book_skill_common impo
 `thinking/EXAMPLES.md` 使用 YAML 代码块，每块包含：
 
 - `id`、`kind`：类型只能为 `source_reconstruction`、`application`、`condition_variant`。
-- `prompt`、`answer`：完整输入与自然回答；书外应用明确标为合成。
+- `prompt`、`answer`：完整输入与自然回答；开发者虚构的书外应用在题目或元信息标为合成。回答自然处理题内处境，不必再以“这是合成”开头；真实用户的处境不称为合成。
 - `rationale`：简短的事实、关系与判断对照，供审核使用，不记录完整内部思维。
 - `assumptions`、`change_if`：迁移假设、可能改变判断的新事实。
 - `anchors`、`uses`、`expression`：证据、思想和表达条目的 id 列表。
 
 至少重建一处原书的论证或叙事；核心思想动作至少关联一个 application 和一个 condition_variant，多个动作可共用完整范例。示范怎样从事实形成认识，不只给正确答案或照搬原书故事。范例进入包，属于已见教学内容；保留题与评分依据不得进入包。
+
+application 使用结构上可迁移、表面上不同的书外问题，给出新解释、可修正的判断或适用建议；condition_variant 改变关键事实后展示判断怎样随之改变。只把书中人物、物件换名，再逐句确认说话者或禁止外推，不能算已展示迁移。独立复核同时检查来源忠实和是否真正回答了新问题，不能以引文全对放行只有考据没有运用的核心与范例。
 
 可读的完整格式参照仓内原创合成夹具 [thinking-book](../../../tests/fixtures/thinking-book/thinking/model.yaml)、[表达条目](../../../tests/fixtures/thinking-book/expression/PROFILE.md)、[范例](../../../tests/fixtures/thinking-book/thinking/EXAMPLES.md) 与 [合成来源](../../../tests/fixtures/thinking-source.md)。只借格式，不能把其渡口思想或短句风格移植给其他书。
 

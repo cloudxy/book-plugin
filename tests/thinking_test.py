@@ -142,6 +142,9 @@ class ThinkingContracts(unittest.TestCase):
         self.assertEqual(audit(self.book, self.source)["status"], "failed")
         path.write_text(original + "\n## 运行摘要\n重复\n")
         self.assertEqual(audit(self.book, self.source)["status"], "failed")
+        # Source metadata must not become mandatory runtime instructions.
+        path.write_text(original.replace("## 来源条目\n", ""))
+        self.assertEqual(audit(self.book, self.source)["status"], "failed")
         path.write_text(original)
         path = self.book / "thinking/EXAMPLES.md"
         path.write_text(path.read_text().replace("condition_variant", "application"))

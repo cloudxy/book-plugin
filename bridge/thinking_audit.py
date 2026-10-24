@@ -117,7 +117,9 @@ def validate(book, source):
         raise ContractError("core must include at least one usable thought operation")
 
     profile = (book / "expression/PROFILE.md").read_text(encoding="utf-8")
-    section(profile, "运行摘要")
+    summary = section(profile, "运行摘要")
+    if markdown_records(summary):
+        raise ContractError("runtime summary contains source metadata: end it with a separate level-two heading")
     styles = {}
     for style in markdown_records(profile):
         sid = text(style.get("id"), "style.id")
