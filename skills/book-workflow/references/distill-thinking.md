@@ -77,6 +77,8 @@ path另需：episodes；task、selection、composition、revise_when非空文本
 
 联合核心须写明书外运用的事实边界：纠偏面向题内已知事实和用户已表达的主张。未知的动机、心理、立场、进度或组织关系如需参与解释，标为假设并说明它怎样影响判断；反问、反转和归因也不能把假设写成既成事实。虚构写作的创造权限按任务单列；原作已有的强断言和偏见按来源留存，区分历史文本的呈现与对新处境的断言。允许形成明确、鲜明、有用的新判断。
 
+对需要完整示范才能落实的关键路径，核心提供明确的运行接入。可将已审短范例的材料说明和完整正文内嵌`core.text`，标明范例id、来源重建或教学合成，并与EXAMPLES逐字核对；较长范例按任务给出实际读取入口。示范材料只属于其教学情境，运用时重新处理当前事实。是否真正学用范例，以加载记录和实际答文核查。
+
 ## 证据与表达
 
 `evidence/anchors.yaml`与v1相同，schema_version改为book-skill/2，每条增加episodes列表，与episode.anchors双向相符。id、locator、quote、start、context必需；context含start、text、speaker、audience、period、level。引文及覆盖它的上下文均须在声明位置逐字存在；中文短引文≤150字，英文≤100词。全文不默认进入运行包。
