@@ -1,21 +1,46 @@
 {
-  "version": "0.3.0",
+  "version": "0.4.0",
   "license": "MIT",
+  "distribution": "pinned-git-snapshot-built-locally",
+  "snapshot_date": "2026-11-01",
+  "source_commit": "b6d33e56525ea670da02dd79b5ec969aedea1ff4",
+  "source_url": "https://github.com/htmlcsstoimage/python-client/commit/b6d33e56525ea670da02dd79b5ec969aedea1ff4",
   "pypi": "html-css-to-image",
+  "latest_pypi_version_at_check": "0.3.0",
   "requires_python": ">=3.10",
   "dependency": "httpx>=0.27,<1",
-  "source_url": "https://github.com/htmlcsstoimage/python-client",
-  "sdist_sha256": "2c7b751b000ad1b57c24c55aef4768282dfcd80ee013a88186718f148419a9de",
-  "wheel": "dist/html_css_to_image-0.3.0-py3-none-any.whl",
-  "wheel_sha256": "bdbc9b1feb43237f81a2e2b3cc24ff4d0859fce03375d9700ca3300fc695aac2",
+  "wheel": "dist/html_css_to_image-0.4.0-py3-none-any.whl",
+  "wheel_sha256": "728bbfdfe98220ae51482eea963bd108d8abadae760e02898a4c8dc50069c186",
   "upstream_files": [
     "LICENSE",
     "README.md",
     "pyproject.toml",
     "src/",
-    "tests/",
-    "dist/html_css_to_image-0.3.0-py3-none-any.whl"
+    "tests/"
   ],
-  "adapter_files": ["SKILL.md", "BUILD_INFO.json"],
-  "note": "LICENSE、README、pyproject.toml、src/、tests/ 与 dist 内 wheel 是上游 0.3.0 快照，不改其源码。SKILL.md 与本文件是 book-workflow 的适配层。运行时由 bootstrap 安装 wheel，进程级调用 bridge/render_html_image.py。无 HCTI_API_ID 与 HCTI_API_KEY 时不访问网络。"
+  "built_files": [
+    "dist/html_css_to_image-0.4.0-py3-none-any.whl"
+  ],
+  "adapter_files": [
+    "SKILL.md",
+    "BUILD_INFO.json"
+  ],
+  "files": {
+    "LICENSE": "b0aced693a2577b737e2cb5bc63bbfbf25a8c1a8748c5f0e77610938a69b570a",
+    "README.md": "b5bfccced3038386cbbe7692b3b84f38dd50461a385ff90df6bed6ddb6813afe",
+    "dist/html_css_to_image-0.4.0-py3-none-any.whl": "728bbfdfe98220ae51482eea963bd108d8abadae760e02898a4c8dc50069c186",
+    "pyproject.toml": "e5ebf06e656f209420633ad7c741db20d351dda2987d183be486c074ee7e6ab6",
+    "src/html_css_to_image/__init__.py": "3bd3c009e8e25123af382ff67bbce12f6d76c4fb1daeb50df1f56723e4960acc",
+    "src/html_css_to_image/_request_mapper.py": "a944d8d90e0e24e56618f5432425c18a5ebbb8eb3dd2c792d2e9c1b26b2c61f8",
+    "src/html_css_to_image/_response_mapper.py": "3b1b7e1f830a973986109467533d3d51f6b134e492ce7f5952a195c33f48d595",
+    "src/html_css_to_image/_transport.py": "3d84401eb2f96ff11c3abc4618b4a98a4b0823636728a7e37b75893c60974467",
+    "src/html_css_to_image/_url_builder.py": "65225caaf9beb67744590f7e87d42d6cc1891df70ef06077b6c9dc26f02d71a2",
+    "src/html_css_to_image/_version.py": "11253f5bee80a5a8586a434cccb6d3e9f57a093a2a6522278823fa6e82aabfc0",
+    "src/html_css_to_image/client.py": "72f4731073f2fbcf893f2596988d1330c31ebf7830a9ba8dca36a510ec310ebd",
+    "src/html_css_to_image/exceptions.py": "d8b9a89f1e5203a34e93bb0b63db3b4e46c7bf7e68c8dd3454388a7ff301a18e",
+    "src/html_css_to_image/models.py": "d40934eece04d95111296792468fb4492e627bbf74c6a9f1947a630fad97e0d8",
+    "src/html_css_to_image/py.typed": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "tests/test_client.py": "ef3281ec0dfa98731d4998727c62e2234c058a4b17c741308b5ce6828f32a6d1"
+  },
+  "note": "0.4.0 为上游 main 源码版本，核对时尚未发布到 PyPI。源文件原样保留，wheel 由固定提交本地构建；SKILL.md 为 book-workflow 调用说明。无密钥不访问出图服务。"
 }

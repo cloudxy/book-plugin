@@ -2,7 +2,7 @@
 """bootstrap.py —— book-workflow 插件的按工作区自举（每个工作区跑一次）
 
 做三件事（全部幂等，重复跑安全）：
-  1. 找 Python ≥3.10 并在 <ws>/.venv 建虚拟环境，装 PyYAML + PyMuPDF + html-css-to-image 0.3.0
+  1. 找 Python ≥3.10 并在 <ws>/.venv 建虚拟环境，装 PyYAML + PyMuPDF + 随包 html-css-to-image
   2. 把 dsh 闸门套装装入 <ws>/tools/ 与 <ws>/.dsh/（官方 init_workspace.py）
   3. 打印体检摘要（node 可用性、闸门件数）与下一步命令
 
@@ -20,7 +20,14 @@ MIN_MAJOR, MIN_MINOR = 3, 10
 REQUIRED = [('yaml', 'PyYAML'), ('fitz', 'PyMuPDF')]
 # 第四件 vendor 的运行库。装 wheel，避免现场用 hatchling 重新构建。
 # 缺密钥时客户端仍可导入；真正出图由 bridge/render_html_image.py 拒绝访问网络。
-HCI_WHEEL = 'html_css_to_image-0.3.0-py3-none-any.whl'
+HCI_VERSION = '0.4.0'
+HCI_WHEEL = 'html_css_to_image-%s-py3-none-any.whl' % HCI_VERSION
+
+
+def hci_matches(vpy):
+    code = ('import sys, html_css_to_image as hci; '
+            'sys.exit(getattr(hci, "__version__", None) != %r)' % HCI_VERSION)
+    return subprocess.run([vpy, '-c', code], capture_output=True).returncode == 0
 
 
 def candidate_pythons():
@@ -93,17 +100,19 @@ def main():
         if r.returncode != 0:
             print('🔴 依赖安装失败：%s' % '、'.join(miss))
             return 2
-    hci_ok = subprocess.run([vpy, '-c', 'import html_css_to_image'], capture_output=True)
-    if hci_ok.returncode != 0:
+    if not hci_matches(vpy):
         wheel = os.path.join(plugin, 'vendor', 'html-css-to-image', 'dist', HCI_WHEEL)
         if not os.path.isfile(wheel):
             print('🔴 缺少 html-css-to-image wheel：%s' % wheel)
             return 2
-        print('▶ 安装 html-css-to-image 0.3.0 …')
+        print('▶ 安装随包 html-css-to-image %s …' % HCI_VERSION)
         r = subprocess.run([os.path.join(ws, '.venv', 'bin', 'pip'), 'install',
                             '--quiet', '--disable-pip-version-check', wheel])
         if r.returncode != 0:
             print('🔴 html-css-to-image 安装失败')
+            return 2
+        if not hci_matches(vpy):
+            print('🔴 html-css-to-image 安装后版本仍不匹配：需要 %s' % HCI_VERSION)
             return 2
 
     # 2) dsh 闸门套装（幂等：配置在则跳过）

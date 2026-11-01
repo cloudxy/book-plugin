@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""可选栅格出图：本地 HTML/CSS → html-css-to-image 0.3.0。
+"""可选栅格出图：本地 HTML/CSS → html-css-to-image 0.4.0 固定源码快照。
 
 无 HCTI_API_ID / HCTI_API_KEY 时不访问网络。
 不读取 books/ 与 .work/。不提供 URL 截图。
@@ -10,7 +10,7 @@ import os
 import shutil
 import sys
 
-PINNED = '0.3.0'
+PINNED = '0.4.0'
 GROK_FILES = '/Users/xuyun/Documents/grok-files'
 MAX_BYTES = 200000
 

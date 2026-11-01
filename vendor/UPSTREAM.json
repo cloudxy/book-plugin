@@ -1,0 +1,59 @@
+{
+  "checked_on": "2026-11-01",
+  "projects": {
+    "cangjie-skill": {
+      "repository": "https://github.com/kangarooking/cangjie-skill",
+      "source_commit": "a28de55ba881b9928956a55048f743f7a9e3b23e",
+      "source_url": "https://github.com/kangarooking/cangjie-skill/commit/a28de55ba881b9928956a55048f743f7a9e3b23e",
+      "version": "2.5.0",
+      "distribution": "pinned-git-snapshot",
+      "license": "MIT",
+      "upstream_file_count": 61,
+      "upstream_files_sha256": "c6a7455440cc50e316eb959a0a773977c73fe82ce3ba952dd13c17850033da9b",
+      "adapter_files": [
+        "BUILD_INFO.json",
+        "README.md"
+      ]
+    },
+    "dsh-distillation-director": {
+      "repository": "https://github.com/winsonpong98-cloud/dsh-distillation-director",
+      "source_commit": "7b67cc2723990473fe86d7005e0e964fb1466f4a",
+      "source_url": "https://github.com/winsonpong98-cloud/dsh-distillation-director/commit/7b67cc2723990473fe86d7005e0e964fb1466f4a",
+      "version": "4.9.26",
+      "distribution": "release-v4.9.26",
+      "license": "AGPL-3.0-or-later",
+      "upstream_file_count": 108,
+      "upstream_files_sha256": "b6ae6920bdd6cf87e63dcb3ba9338555797277f0a213ccfa457cd38ea0fe3d93",
+      "adapter_files": []
+    },
+    "svg-diagram": {
+      "repository": "https://github.com/bybit-exchange/svg-diagram",
+      "source_commit": "c30c9e3bc9a70f2b77b60c7ea27157de3a88d81a",
+      "source_url": "https://github.com/bybit-exchange/svg-diagram/commit/c30c9e3bc9a70f2b77b60c7ea27157de3a88d81a",
+      "version": null,
+      "distribution": "pinned-git-snapshot",
+      "license": "MIT",
+      "upstream_file_count": 79,
+      "upstream_files_sha256": "3236077c3c40bada7b7995dc6512107cdd79753ddc9a97e3e9eba450dd3b623b",
+      "adapter_files": []
+    },
+    "html-css-to-image": {
+      "repository": "https://github.com/htmlcsstoimage/python-client",
+      "source_commit": "b6d33e56525ea670da02dd79b5ec969aedea1ff4",
+      "source_url": "https://github.com/htmlcsstoimage/python-client/commit/b6d33e56525ea670da02dd79b5ec969aedea1ff4",
+      "version": "0.4.0",
+      "distribution": "pinned-git-snapshot-built-locally",
+      "license": "MIT",
+      "upstream_file_count": 14,
+      "upstream_files_sha256": "9a3830fe0ef5537ca06f0851b237c1f37d64109891f0221d70e611df63b1b68a",
+      "adapter_files": [
+        "BUILD_INFO.json",
+        "SKILL.md"
+      ],
+      "latest_pypi_version_at_check": "0.3.0",
+      "wheel": "dist/html_css_to_image-0.4.0-py3-none-any.whl",
+      "wheel_sha256": "728bbfdfe98220ae51482eea963bd108d8abadae760e02898a4c8dc50069c186",
+      "note": "0.4.0 尚未发布到 PyPI；使用固定提交源码本地构建。"
+    }
+  }
+}

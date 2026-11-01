@@ -2,8 +2,8 @@
 name: book-workflow
 description: 蒸馏书籍、人物材料、长视频或播客，按用途生成可迁移的知识、思想、叙事或表达 Skill；编排全文阅读、综合、复核、实测和组合清单交付，支持批量、恢复与定向返修。保留正式作者分身和程序四闸路径。
 metadata:
-  book-workflow.version: "0.5.0"
-  vendors: cangjie-skill v2.5.0-refresh ｜ dsh-distillation-director v4.9.26 ｜ svg-diagram @ c30c9e3 ｜ html-css-to-image v0.3.0
+  book-workflow.version: "0.5.1"
+  vendors: cangjie-skill v2.5.0 @ a28de55 ｜ dsh-distillation-director v4.9.26 ｜ svg-diagram @ c30c9e3 ｜ html-css-to-image v0.4.0 源码快照
 ---
 
 # book-workflow

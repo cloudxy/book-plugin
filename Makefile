@@ -2,7 +2,7 @@ PY := .venv/bin/python
 CANGJIE := vendor/cangjie-skill/scripts/cangjie.py
 SVG_LINT := vendor/svg-diagram/tools/svg-lint/bin/svg-lint.mjs
 
-.PHONY: doctor gates-selftest e2e thinking-test pipeline-test production-test production-run production-status production-sync portfolio bridge audit compile thinking-audit candidate eval-report publish lint-svg new-book clean
+.PHONY: doctor gates-selftest e2e thinking-test pipeline-test production-test vendor-test production-run production-status production-sync portfolio bridge audit compile thinking-audit candidate eval-report publish lint-svg new-book clean
 
 doctor: gates-selftest
 	@$(PY) $(CANGJIE) doctor
@@ -28,6 +28,13 @@ e2e:
 	@$(PY) -B tests/persona_test.py
 	@$(PY) -B tests/pipeline_test.py
 	@$(PY) -B tests/production_test.py
+	@$(PY) -B tests/vendor_test.py
+
+vendor-test:
+	@$(PY) -B tests/vendor_test.py
+	@$(PY) -B -m unittest discover -s vendor/cangjie-skill/tests
+	@$(PY) -B -m unittest discover -s vendor/html-css-to-image/tests
+	@cd vendor/svg-diagram && node --test 'tools/svg-lint/test/**/*.test.mjs'
 
 production-test:
 	@$(PY) -B tests/production_test.py

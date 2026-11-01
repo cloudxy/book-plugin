@@ -2,14 +2,14 @@
 name: html-css-to-image
 description: 可选地把一份本地 HTML/CSS 渲成栅格图。仅当操作者明确要求出 PNG/JPEG，且环境里已经有 HCTI_API_ID 与 HCTI_API_KEY 时使用。不用于书稿、引文、审计池，不抓取网页，也不替代 svg-diagram 的图件闸。
 metadata:
-  html-css-to-image.version: "0.3.0"
+  html-css-to-image.version: "0.4.0"
   html-css-to-image.license: MIT
-  html-css-to-image.install: vendor/html-css-to-image/dist/html_css_to_image-0.3.0-py3-none-any.whl
+  html-css-to-image.install: vendor/html-css-to-image/dist/html_css_to_image-0.4.0-py3-none-any.whl
 ---
 
 # html-css-to-image — 可选栅格出图
 
-上游是 HTML/CSS to Image 的官方 Python 客户端 0.3.0（MIT）。本目录的 `src/`、`tests/`、`LICENSE`、`README.md`、`pyproject.toml` 与 `dist/` 里的 wheel 是该版本的快照，不改其源码。本文件只说明 book-workflow 怎么调用它。
+上游是 HTML/CSS to Image 的官方 Python 客户端（MIT），本目录固定到提交 `b6d33e56525ea670da02dd79b5ec969aedea1ff4` 的 0.4.0 源码。2026-11-01 核对时 PyPI 最新发布仍是 0.3.0；这里使用源码快照，不称正式发布版。`src/`、`tests/`、`LICENSE`、`README.md`、`pyproject.toml` 原样保留；`dist/` 中的 wheel 由该提交本地构建，校验值见 `BUILD_INFO.json`。本文件只说明 book-workflow 怎么调用它。
 
 ## 它做什么
 
@@ -38,4 +38,4 @@ $WS/.venv/bin/python $PLUGIN/bridge/render_html_image.py \
 $WS/.venv/bin/python $PLUGIN/bridge/render_html_image.py --check
 ```
 
-`--check` 只确认已安装的客户端版本是 0.3.0，并报告两个环境变量是否都有值。它不打印密钥，不发起 HTTP 请求。
+`--check` 只确认已安装的客户端版本是 0.4.0，并报告两个环境变量是否都有值。它不打印密钥，不发起 HTTP 请求。运行 `scripts/bootstrap.py` 会检查版本并从随包 wheel 升级已安装的旧客户端。

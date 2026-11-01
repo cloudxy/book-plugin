@@ -1,6 +1,6 @@
 # book-workflow
 
-book-workflow 0.5.0 沿两条主线工作：**蒸馏**完整阅读书籍或人物材料，按用途生成知识、思想、叙事或表达 Skill；**编排与调度**管理任务依赖、并发、上下文、预算、恢复和定向返修。使用现有模型，不训练模型参数。交付可迁移的被测原包及中立组合清单，写作侧自行调用和组合。
+book-workflow 0.5.1 沿两条主线工作：**蒸馏**完整阅读书籍或人物材料，按用途生成知识、思想、叙事或表达 Skill；**编排与调度**管理任务依赖、并发、上下文、预算、恢复和定向返修。使用现有模型，不训练模型参数。交付可迁移的被测原包及中立组合清单，写作侧自行调用和组合。
 
 新任务按用途进入0.5试用生产线；正式作者分身、现有 book-skill/1、book-skill/2 和程序四闸继续保持原合同，不因版本更新自动升格。源文全文进入阅读任务，逐字摘引可选；内容哈希不能证明模型已理解。人物包注明材料范围与时期，知识包不强制作者口吻。新生产入口见 [蒸馏与调度操作说明](skills/book-workflow/references/production.md)。
 
@@ -92,12 +92,19 @@ books/<slug>/
 
 ## 环境与命令
 
-Python ≥3.10，PyYAML、PyMuPDF、html-css-to-image 0.3.0；Node 用于 svg-lint。工作区自举：
+Python ≥3.10，PyYAML、PyMuPDF、html-css-to-image 0.4.0 源码快照；Node 用于 svg-lint。工作区自举：
 
 ```bash
 python3 scripts/bootstrap.py <工作区根>
 make doctor
-make e2e                 # 原程序 + v1兼容 + v2作者合同；合成测试不代表真人作者效果
+make e2e                 # 原程序 + 思想/作者/生产/依赖合同；合成测试不代表真人作者效果
+```
+
+依赖固定提交及发布渠道见 [`vendor/UPSTREAM.json`](vendor/UPSTREAM.json)，本次变更见 [0.5.1 更新记录](docs/releases/0.5.1.md)。HTML 客户端 0.4.0 是固定提交的源码快照，安装使用随包 wheel；自举会升级已安装的旧版。上游测试另需 `jsonschema`：
+
+```bash
+.venv/bin/python -m pip install 'jsonschema>=4,<5'
+make vendor-test         # 集成回归 + 仓颉、HTML 客户端、SVG 的上游测试
 ```
 
 拆书本身由宿主按技能读取原文和写入思想内容，CLI 不会用正则自动生成书的思想。文件合同见 [重建指南](skills/book-workflow/references/distill-thinking.md)。

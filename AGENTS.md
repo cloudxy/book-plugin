@@ -1,6 +1,6 @@
 # AGENTS.md — book-workflow 工作区
 
-book-workflow：知识蒸馏闭环工作流插件，v0.5.0。**双主线：按用途蒸馏书籍/人物 Skill；编排调度完整阅读、综合、复核、实测、恢复与组合清单交付。** 不涉及模型参数训练。正式作者分身继续按既有完整构思、习惯与路径联合重建及验收合同运行。程序能力继续由 cangjie-skill 生成、dsh 三闸+图件闸核验；svg-diagram 负责房规 SVG。html-css-to-image 0.3.0 可选，无密钥不调用、不进四闸。本目录是插件开发现场，skills/commands/bridge/vendor 只在这里更新；zcode 经 `~/.zcode/cli/config.json` 的 `plugins.dirs` 直接加载。上游 https://github.com/cloudxy/book-plugin 是唯一共同源；其他机器克隆、注册并 git pull 后开新会话加载更新。
+book-workflow：知识蒸馏闭环工作流插件，v0.5.1。**双主线：按用途蒸馏书籍/人物 Skill；编排调度完整阅读、综合、复核、实测、恢复与组合清单交付。** 不涉及模型参数训练。正式作者分身继续按既有完整构思、习惯与路径联合重建及验收合同运行。程序能力继续由 cangjie-skill 生成、dsh 三闸+图件闸核验；svg-diagram 负责房规 SVG。html-css-to-image 0.4.0 源码快照 可选，无密钥不调用、不进四闸。本目录是插件开发现场，skills/commands/bridge/vendor 只在这里更新；zcode 经 `~/.zcode/cli/config.json` 的 `plugins.dirs` 直接加载。上游 https://github.com/cloudxy/book-plugin 是唯一共同源；其他机器克隆、注册并 git pull 后开新会话加载更新。
 
 ## 目录
 
@@ -13,7 +13,7 @@ book-workflow/
 ├── commands/               三个斜杠命令：book（全流程）、book-audit（只审计）、book-diagram（只出图）
 ├── bridge/                 桥接/审计/构建：thinking_audit.py / build_book_skill.py / eval_book_skill.py；保留程序四闸与出图入口
 ├── scripts/bootstrap.py    按工作区自举（.venv + dsh 闸门套装，幂等）
-├── vendor/                 四件随包依赖（自包含）：cangjie-skill v2.5.0-refresh ｜ dsh v4.9.26 ｜ svg-diagram c30c9e3 ｜ html-css-to-image v0.3.0
+├── vendor/                 四件随包依赖（自包含）：cangjie-skill v2.5.0 @ a28de55 ｜ dsh v4.9.26 ｜ svg-diagram c30c9e3 ｜ html-css-to-image v0.4.0 源码快照
 ├── tests/                  程序 e2e（12 项断言）+ 思想构建/验收合同测试与原创合成 fixtures
 ├── tools/ .dsh/            闸门套装（bootstrap 装入本工作区的运行件，可重建）
 ├── books/ .work/           蒸馏产物与审计任务（私有，不进远端）
@@ -67,7 +67,7 @@ Codex 若显示插件命名空间，按 `/skills` 中的完整名称调用，例
 | cangjie-skill | MIT | 宽松；保留其 LICENSE 与署名即可 |
 | svg-diagram | MIT | 同上 |
 | dsh-distillation-director | **AGPL-3.0** | 允许随仓库整体再分发（完整保留其 LICENSE 与源码）；**不得改动其源码**，除非接受改动部分以 AGPL 开源。本仓库与其边界是**进程级调用**（bridge 调 tools/ 脚本），属聚合而非衍生 |
-| html-css-to-image | MIT | 上游 Python 客户端 0.3.0 快照不改源码；`SKILL.md` 只是本仓库的调用说明。进程级调用 `bridge/render_html_image.py`。无密钥不访问网络，不进四闸 |
+| html-css-to-image | MIT | 上游 Python 客户端 0.4.0 固定源码快照不改源码；`SKILL.md` 只是本仓库的调用说明。进程级调用 `bridge/render_html_image.py`。无密钥不访问网络，不进四闸 |
 
 ## 私有内容（硬约束）
 
