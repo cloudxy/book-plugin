@@ -10,25 +10,12 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "bridge"))
+sys.path.insert(0, str(ROOT / "tests"))
 from book_skill_common import ContractError, digest, qnorm, read_json  # noqa: E402
 from batch_runner import book_state, next_action, status as batch_status  # noqa: E402
 from export_portfolio import export, register, verbatim_hit  # noqa: E402
 from l1_extract import check as l1_check, init as l1_init  # noqa: E402
-
-
-def synthetic_source(path):
-    parts = [f"第{i}节　" + f"这一节讨论领域{i}的方法论，主张{i}号命题，给出论证{i}与反例{i}的处理。" * 12
-             for i in range(1, 31)]
-    path.write_text("\n".join(parts), encoding="utf-8")
-
-
-def bucket_entry(index, src, kind="claim"):
-    start = index * len(src) // 10 + 3
-    end = start + 30
-    return {"id": f"E{index:02d}", "kind": kind,
-            "statement": f"合成命题{index}：来自桶{index}的重述，不复制原文。",
-            "locator": f"合成第{index}节", "start": start, "end": end,
-            "span_sha256": digest(src[start:end].encode()), "epistemic_status": "explicit"}
+from support.books import synthetic_source, bucket_entry  # noqa: E402
 
 
 class L1Gates(unittest.TestCase):

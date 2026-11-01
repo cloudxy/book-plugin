@@ -63,7 +63,7 @@ L1/L2/L3 的具体划分、10% 抽样、六组试答、并发数和重试次数�
 | P1 | 类型模板只有名称；“科学类 L1 即完整”“双资产”未定义；L1 既要求抽样又写机器闸即过，最后还要求用户抽 10 条 | 模板落实为不同对象和边界；自动独立抽样；科学材料不自动获现实正确性背书 |
 | P2 | 无耗时和干预基线就认定瓶颈；星数替代成熟证据；“双盲”方法归因缺出处 | 补成本/可用产物基线；来源采用、方法出处与本地效果分别登记 |
 
-代码证据：[L1 原型](../../../bridge/l1_extract.py)、[状态看板](../../../bridge/batch_runner.py)、[Skill 构建器](../../../bridge/build_book_skill.py)、[包验证器](../../../bridge/book_skill_common.py)、[已有迁移合同测试](../../../tests/thinking_test.py)。[来源合同](../../../skills/book-workflow/references/distill-thinking.md)与[评测发布合同](../../../skills/book-workflow/references/evaluate-and-publish.md)仍约束原正式路径；0.5 新线以[操作说明](../../../skills/book-workflow/references/production.md)及[实施记录](implementation.md)为准。下文保留设计选择，不把计划中的字段名、配置或验收设想视为已经实现。
+代码证据：[L1 原型](../../../bridge/l1_extract.py)、[状态看板](../../../bridge/batch_runner.py)、[Skill 构建器](../../../bridge/build_book_skill.py)、[包验证器](../../../bridge/book_skill_common.py)、[已有迁移合同测试](../../../tests/test_thinking_contracts.py)。[来源合同](../../../skills/book-workflow/references/distill-thinking.md)与[评测发布合同](../../../skills/book-workflow/references/evaluate-and-publish.md)仍约束原正式路径；0.5 新线以[操作说明](../../../skills/book-workflow/references/production.md)及[实施记录](implementation.md)为准。下文保留设计选择，不把计划中的字段名、配置或验收设想视为已经实现。
 
 ### 修订稿四的实测记录及证明边界
 

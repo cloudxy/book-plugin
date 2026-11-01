@@ -2,7 +2,7 @@ PY := .venv/bin/python
 CANGJIE := vendor/cangjie-skill/scripts/cangjie.py
 SVG_LINT := vendor/svg-diagram/tools/svg-lint/bin/svg-lint.mjs
 
-.PHONY: doctor gates-selftest e2e thinking-test pipeline-test production-test vendor-test production-run production-status production-sync portfolio bridge audit compile thinking-audit candidate eval-report publish lint-svg new-book clean
+.PHONY: doctor gates-selftest e2e thinking-test pipeline-test production-test vendor-test production-run production-status production-sync portfolio bridge audit compile thinking-audit candidate eval-report publish lint-svg new-book
 
 doctor: gates-selftest
 	@$(PY) $(CANGJIE) doctor
@@ -22,22 +22,19 @@ gates-selftest:
 	@$(PY) tools/check_anchor_consistency.py --selftest
 	@$(PY) tools/check_evidence_closure.py --selftest
 
+# 回归运行器：unittest discover 收 tests/test_*.py（含全隔离的 test_gates_e2e）。
+# 分项 target 用 -k 按模块名过滤；全部零额外依赖（stdlib unittest）。
 e2e:
-	@$(PY) tests/e2e_test.py
-	@$(PY) -B tests/thinking_test.py
-	@$(PY) -B tests/persona_test.py
-	@$(PY) -B tests/pipeline_test.py
-	@$(PY) -B tests/production_test.py
-	@$(PY) -B tests/vendor_test.py
+	@$(PY) -B -m unittest discover -s tests -p 'test_*.py'
 
 vendor-test:
-	@$(PY) -B tests/vendor_test.py
+	@$(PY) -B -m unittest discover -s tests -p 'test_*.py' -k vendor
 	@$(PY) -B -m unittest discover -s vendor/cangjie-skill/tests
 	@$(PY) -B -m unittest discover -s vendor/html-css-to-image/tests
 	@cd vendor/svg-diagram && node --test 'tools/svg-lint/test/**/*.test.mjs'
 
 production-test:
-	@$(PY) -B tests/production_test.py
+	@$(PY) -B -m unittest discover -s tests -p 'test_*.py' -k production
 
 production-run:
 	@test -n "$(RUN)" && test -n "$(WORKER)" || (echo "用法: make production-run RUN=books/<slug>/pipeline WORKER=<argv.json>"; exit 2)
@@ -56,11 +53,10 @@ portfolio:
 	@$(PY) bridge/skill_portfolio.py export --ws "$(CURDIR)" --out "$(OUT)"
 
 pipeline-test:
-	@$(PY) -B tests/pipeline_test.py
+	@$(PY) -B -m unittest discover -s tests -p 'test_*.py' -k pipeline
 
 thinking-test:
-	@$(PY) -B tests/thinking_test.py
-	@$(PY) -B tests/persona_test.py
+	@$(PY) -B -m unittest discover -s tests -p 'test_*.py' -k thinking -k persona
 
 bridge:
 	@test -n "$(BOOK)" && test -n "$(SRC)" || (echo "用法: make bridge BOOK=books/<slug> SRC=<原文.txt|md|pdf> [TASK=<slug>]"; exit 2)
@@ -101,7 +97,4 @@ new-book:
 		printf '# PIPELINE_STATE\n\n当前阶段: 0（Adler 整书理解，未开始）\n已完成: （无）\n书名: $(TITLE)\n' \
 			> books/$(BOOK)/PIPELINE_STATE.md; \
 		echo "已建 books/$(BOOK)/（PIPELINE_STATE.md 就绪，阶段 0 待开始）"; \
-	else echo "books/$(BOOK)/ 已存在，跳过（不覆盖断点续跑状态）"; fi
-
-clean:
-	rm -rf .work/demo-book .work/demo-tamper
+		else echo "books/$(BOOK)/ 已存在，跳过（不覆盖断点续跑状态）"; fi

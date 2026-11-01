@@ -13,11 +13,14 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "bridge"))
+sys.path.insert(0, str(ROOT / "tests"))
 from book_skill_common import (ContractError, DIMENSIONS, STYLE_DIMENSIONS, digest,
     input_snapshot, read_json, read_yaml, source_hashes, tree_hashes, verify_package, write_json)
 from thinking_audit import audit, validate
 from build_book_skill import build_candidate, publish, compile_procedures
 from eval_book_skill import collect, prepare, report_run
+from support.contracts import approve_source
+from support.gates import prepare_gate_ws
 
 
 class ThinkingContracts(unittest.TestCase):
@@ -36,11 +39,7 @@ class ThinkingContracts(unittest.TestCase):
 
     def approve_source_fixture(self):
         """Simulated reviewer solely for contract tests, not a real book verdict."""
-        result = validate(self.book, self.source)
-        record = {"input_sha256": result["input_sha256"], "reviewer": "synthetic-test-reviewer",
-                  "independent": True, "checks": {key: {"status": "passed", "rationale": "synthetic test oracle"}
-                                                    for key in result["checks"]}}
-        write_json(self.book / "eval/source-review.json", record)
+        approve_source(self.book, self.source)
         self.assertEqual(audit(self.book, self.source)["status"], "passed")
 
     def candidate(self):
@@ -349,8 +348,7 @@ class ThinkingContracts(unittest.TestCase):
         self.yaml(self.modelpath, model)
         self.approve_source_fixture()
         with self.assertRaises(ContractError): build_candidate(self.book, self.source, self.ws)
-        shutil.copytree(ROOT / "tools", self.ws / "tools")
-        (self.ws / ".dsh").mkdir()
+        prepare_gate_ws(self.ws, ROOT)
         for script, extra in (("cangjie_to_dsh.py", ["--book-dir", str(self.book), "--source", str(self.source)]),
                               ("run_audit.py", [])):
             result = subprocess.run([sys.executable, str(ROOT / "bridge" / script),

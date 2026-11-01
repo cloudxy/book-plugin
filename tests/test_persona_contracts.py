@@ -10,11 +10,13 @@ import yaml
 ROOT=Path(__file__).resolve().parents[1]
 FIXTURE=ROOT/'tests/fixtures/persona-book'
 sys.path.insert(0,str(ROOT/'bridge'))
+sys.path.insert(0,str(ROOT/'tests'))
 from book_skill_common import (ContractError, DIMENSIONS, AUTHOR_DIMENSIONS, STYLE_DIMENSIONS,
     digest, read_json, read_yaml, write_json, input_snapshot, tree_hashes, verify_package)
 from thinking_audit import validate, audit
 from build_book_skill import build_candidate, publish
 from eval_book_skill import prepare, collect, report_run, blind_packets
+from support.contracts import approve_source
 
 
 class AuthorContracts(unittest.TestCase):
@@ -31,10 +33,8 @@ class AuthorContracts(unittest.TestCase):
         path.write_text(yaml.safe_dump(value,allow_unicode=True,sort_keys=False))
 
     def approve_fixture(self):
-        data=validate(self.book,self.source)
-        write_json(self.book/'eval/source-review.json',{'input_sha256':data['input_sha256'],
-            'reviewer':'synthetic-reviewer','independent':True,
-            'checks':{c:{'status':'passed','rationale':'SIMULATED CONTRACT ORACLE, NOT REAL SOURCE REVIEW'} for c in data['checks']}})
+        approve_source(self.book,self.source,reviewer='synthetic-reviewer',
+            rationale='SIMULATED CONTRACT ORACLE, NOT REAL SOURCE REVIEW')
 
     def candidate(self):
         self.approve_fixture()
