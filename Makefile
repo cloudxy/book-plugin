@@ -2,7 +2,7 @@ PY := .venv/bin/python
 CANGJIE := vendor/cangjie-skill/scripts/cangjie.py
 SVG_LINT := vendor/svg-diagram/tools/svg-lint/bin/svg-lint.mjs
 
-.PHONY: doctor gates-selftest e2e thinking-test bridge audit compile thinking-audit candidate eval-report publish lint-svg new-book clean
+.PHONY: doctor gates-selftest e2e thinking-test pipeline-test production-test production-run production-status production-sync portfolio bridge audit compile thinking-audit candidate eval-report publish lint-svg new-book clean
 
 doctor: gates-selftest
 	@$(PY) $(CANGJIE) doctor
@@ -26,6 +26,30 @@ e2e:
 	@$(PY) tests/e2e_test.py
 	@$(PY) -B tests/thinking_test.py
 	@$(PY) -B tests/persona_test.py
+	@$(PY) -B tests/pipeline_test.py
+	@$(PY) -B tests/production_test.py
+
+production-test:
+	@$(PY) -B tests/production_test.py
+
+production-run:
+	@test -n "$(RUN)" && test -n "$(WORKER)" || (echo "用法: make production-run RUN=books/<slug>/pipeline WORKER=<argv.json>"; exit 2)
+	@$(PY) bridge/production.py run --root "$(RUN)" --worker "$(WORKER)" --parallel "$(if $(PARALLEL),$(PARALLEL),2)"
+
+production-status:
+	@test -n "$(RUN)" || (echo "用法: make production-status RUN=books/<slug>/pipeline"; exit 2)
+	@$(PY) bridge/production.py status --root "$(RUN)"
+
+production-sync:
+	@test -n "$(RUN)" || (echo "用法: make production-sync RUN=books/<slug>/pipeline"; exit 2)
+	@$(PY) bridge/production.py sync --root "$(RUN)"
+
+portfolio:
+	@test -n "$(OUT)" || (echo "用法: make portfolio OUT=<独立交付目录>"; exit 2)
+	@$(PY) bridge/skill_portfolio.py export --ws "$(CURDIR)" --out "$(OUT)"
+
+pipeline-test:
+	@$(PY) -B tests/pipeline_test.py
 
 thinking-test:
 	@$(PY) -B tests/thinking_test.py

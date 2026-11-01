@@ -1,6 +1,6 @@
 # AGENTS.md — book-workflow 工作区
 
-book-workflow：知识蒸馏闭环工作流插件，v0.4.0。**整书与声音分层、完整构思片段、作者习惯与路径联合重建 → 来源与语义核查 → 私有候选 → 实际回答评测 → 发布被测原包。** 程序能力继续由 cangjie-skill 生成、dsh 三闸+图件闸核验；svg-diagram 负责房规 SVG。 html-css-to-image 0.3.0 是可选栅格出图，无密钥不调用、不进四闸。 本目录既是蒸馏工作区，也是插件的**开发与编辑现场**——skills/commands/bridge/vendor 就在这里更新；zcode 经 `~/.zcode/cli/config.json` 的 `plugins.dirs` 直接注册本目录加载（改源文件后开新会话即生效，无副本同步）。上游 https://github.com/cloudxy/book-plugin 是唯一共同源；其他机器按需克隆到 `~/.zcode/local-plugins/book-workflow` 并注册该克隆，`git pull` 后开新会话加载更新。
+book-workflow：知识蒸馏闭环工作流插件，v0.5.0。**双主线：按用途蒸馏书籍/人物 Skill；编排调度完整阅读、综合、复核、实测、恢复与组合清单交付。** 不涉及模型参数训练。正式作者分身继续按既有完整构思、习惯与路径联合重建及验收合同运行。程序能力继续由 cangjie-skill 生成、dsh 三闸+图件闸核验；svg-diagram 负责房规 SVG。html-css-to-image 0.3.0 可选，无密钥不调用、不进四闸。本目录是插件开发现场，skills/commands/bridge/vendor 只在这里更新；zcode 经 `~/.zcode/cli/config.json` 的 `plugins.dirs` 直接加载。上游 https://github.com/cloudxy/book-plugin 是唯一共同源；其他机器克隆、注册并 git pull 后开新会话加载更新。
 
 ## 目录
 
@@ -51,12 +51,14 @@ Codex 若显示插件命名空间，按 `/skills` 中的完整名称调用，例
 
 判态口径：新整书路径先完成思想/叙事来源与独立语义核查，适用的程序 Bundle 再过原四闸；构建私有候选后实跑回答并独立评审，用户口吻审阅完成才发布原候选。待运行/待复核不得写通过。四闸全绿只放行程序依赖编译，不能证明整书思想与口吻已验收。程序红项沿原映射回炉；思想、表达或范例红项定向修对应来源。完整流程见 [README.md](README.md) 与 `skills/book-workflow/SKILL.md`。
 
+0.5 新试用线按 `skills/book-workflow/references/production.md`：`bridge/production.py` 负责任务执行与状态，`distill_skill.py` 构建按用途的单入口包，`production_eval.py` 留真实应用与独立评审，`skill_portfolio.py` 交付被测原包和中立清单。`books/<slug>/pipeline/state.json` 是新线状态源；不覆盖旧 `PIPELINE_STATE.md`，不把试用通过当成正式分身通过。全文读取必需，逐字锚点在新线可选。旧素材实验脚本保留兼容，不作为 Skill 产线完成证据。
+
 ## 维护纪律
 
 - **单一事实源**：skills/commands/bridge/vendor 只在本目录改；五端挂载点全是软链或清单，改完即更新，无副本同步。
 - **同步走 GitHub**：上游 `cloudxy/book-plugin`；改动 `git pull → commit → push`（pre-commit 钩子兜底拦截私有内容）。其他机器是否克隆、克隆到哪里，由各机器自定。
 - **vendor 升级**：替换 `vendor/<名>/` → 递增 `.zcode-plugin/plugin.json` 等四份清单版本与 SKILL.md 的 `vendors:` 登记 → `make doctor && make e2e` 回归。
-- **回归**：`make e2e`（原程序 12 项 + `tests/thinking_test.py` / `tests/persona_test.py` 合同测试）+ `make doctor`。合成结构测试不能冒充真实书籍的思考或口吻通过。
+- **回归**：`make e2e`（原程序 12 项 + thinking/persona/pipeline/production 合同测试）+ `make doctor`。合成结构测试不能冒充真实书籍或人物 Skill 的效果通过；真实产物及验收记录留私有目录。
 
 ### vendor 许可证（再分发边界）
 

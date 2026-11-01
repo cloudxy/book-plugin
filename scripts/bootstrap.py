@@ -129,6 +129,8 @@ def main():
     print('   node：%s%s' % (node or '未找到',
                              '（svg-lint 可用）' if node else '（图件闸 svg-lint 将判不适用）'))
     print('\n下一步（脚本不在工作区内，务必带 --ws）:')
+    print('  0.5 新书籍/人物试用线：先读 references/production.md，使用 bridge/production.py init/run/status。')
+    print('  production 以 --root 定位私有 pipeline，不覆盖旧状态；实测后由 skill_portfolio.py 交付原包及清单。')
     print('  先按 skills/book-workflow/SKILL.md 重建思想、叙事与完整范例；不要用桥接替代这一步。')
     print('  思想核查: %s %s --book-dir %s/books/<slug> --source <原文> --ws %s'
           % (vpy, os.path.join(plugin, 'bridge', 'thinking_audit.py'), ws, ws))

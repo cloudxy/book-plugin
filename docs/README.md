@@ -6,6 +6,8 @@
 
 | 要找什么 | 入口 |
 |---|---|
+| 0.5.0 设计基线：蒸馏与编排调度双主线，交付书籍/人物 Skill 及组合清单 | [生态融入与产能升级方案](designs/ecosystem/upgrade.md) |
+| 0.5 已实现模块、回归与效果边界 | [实施记录](designs/ecosystem/implementation.md) |
 | 已批准并执行中的作者分身：隐藏习惯、视角、路径与文风 | [作者分身升级方案](designs/author-persona/upgrade.md) |
 | 0.3.0 第三轮方案：现有问题、思想推演、叙事口吻与实施顺序 | [升级方案](designs/judgment/upgrade.md) |
 | 具体预期：新问题、条件变化、叙事解释、简答与入口正文 | [完整问答示例](designs/judgment/examples.md) |

@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "book-workflow",
-  "version": "0.4.0",
-  "description": "知识蒸馏工作流：重建作者的注意习惯、视角、推演与行文路径，联合生成新问题回答；独立核查来源、作者认知与表达后发布被测原包，适用程序继续经仓颉与四闸。",
+  "version": "0.5.0",
+  "description": "知识蒸馏与编排调度双主线：按用途产出书籍/人物 Skill，完整阅读、独立复核、实测迁移，交付被测原包和组合清单；保留正式分身与程序四闸，不训练模型参数。",
   "author": {
     "name": "xuyun"
   },
