@@ -14,7 +14,7 @@ book-workflow/
 ├── bridge/                 桥接/审计/构建：thinking_audit.py / build_book_skill.py / eval_book_skill.py；保留程序四闸与出图入口
 ├── scripts/bootstrap.py    按工作区自举（.venv + dsh 闸门套装，幂等）
 ├── vendor/                 四件随包依赖（自包含）：cangjie-skill v2.5.0 @ a28de55 ｜ dsh v4.9.26 ｜ svg-diagram c30c9e3 ｜ html-css-to-image v0.4.0 源码快照
-├── tests/                  程序 e2e（12 项断言）+ 思想构建/验收合同测试与原创合成 fixtures
+├── tests/                  test_*.py 合同/回归/闸门 e2e（unittest discover，全临时目录隔离）+ COVERAGE.md 映射与原创合成 fixtures
 ├── tools/ .dsh/            闸门套装（bootstrap 装入本工作区的运行件，可重建）
 ├── books/ .work/           蒸馏产物与审计任务（私有，不进远端）
 ├── .claude/ .agents/ .grok/ 各 CLI 项目级软链 → 仓内 skills/commands
@@ -58,7 +58,7 @@ Codex 若显示插件命名空间，按 `/skills` 中的完整名称调用，例
 - **单一事实源**：skills/commands/bridge/vendor 只在本目录改；五端挂载点全是软链或清单，改完即更新，无副本同步。
 - **同步走 GitHub**：上游 `cloudxy/book-plugin`；改动 `git pull → commit → push`（pre-commit 钩子兜底拦截私有内容）。其他机器是否克隆、克隆到哪里，由各机器自定。
 - **vendor 升级**：替换 `vendor/<名>/` → 递增 `.zcode-plugin/plugin.json` 等四份清单版本与 SKILL.md 的 `vendors:` 登记 → `make doctor && make e2e` 回归。
-- **回归**：`make e2e`（原程序 12 项 + thinking/persona/pipeline/production 合同测试）+ `make doctor`。合成结构测试不能冒充真实书籍或人物 Skill 的效果通过；真实产物及验收记录留私有目录。
+- **回归**：`make e2e`（unittest discover 全量：闸门 e2e + thinking/persona/pipeline/production/vendor 合同 + 覆盖映射闸）+ `make doctor`。合成结构测试不能冒充真实书籍或人物 Skill 的效果通过；真实产物及验收记录留私有目录。测试分层、不变量与决策记录见 [docs/designs/testing/test-architecture.md](docs/designs/test-architecture.md)；新增 bridge 模块须同步 `tests/COVERAGE.md`，否则 `make e2e` 红。
 
 ### vendor 许可证（再分发边界）
 

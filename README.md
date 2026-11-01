@@ -66,7 +66,7 @@ bridge/
   check_diagrams.py                 SVG 引用与 lint
   render_html_image.py              可选栅格出图
 scripts/bootstrap.py               按工作区自举，幂等
-tests/                             原程序 e2e、新合同回归与原创合成夹具
+tests/                             合同/回归/闸门 e2e（全临时目录隔离）、COVERAGE.md 映射与原创合成夹具
 docs/                              设计与验收方法，不作为技能加载
 vendor/                            固定随包依赖，不修改其源码
 books/ .work/                      私有源文、蒸馏、候选、回答与评审
@@ -97,7 +97,8 @@ Python ≥3.10，PyYAML、PyMuPDF、html-css-to-image 0.4.0 源码快照；Node 
 ```bash
 python3 scripts/bootstrap.py <工作区根>
 make doctor
-make e2e                 # 原程序 + 思想/作者/生产/依赖合同；合成测试不代表真人作者效果
+make e2e                 # unittest discover 全量：闸门 e2e + 思想/作者/生产/依赖合同 + 覆盖映射闸
+                         # 合成测试不代表真人作者效果；测试架构见 docs/designs/testing/test-architecture.md
 ```
 
 依赖固定提交及发布渠道见 [`vendor/UPSTREAM.json`](vendor/UPSTREAM.json)，本次变更见 [0.5.1 更新记录](docs/releases/0.5.1.md)。HTML 客户端 0.4.0 是固定提交的源码快照，安装使用随包 wheel；自举会升级已安装的旧版。上游测试另需 `jsonschema`：
