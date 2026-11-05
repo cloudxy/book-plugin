@@ -11,3 +11,4 @@ books/
 tools/
 .dsh/
 .tests/
+.zcode/plans/

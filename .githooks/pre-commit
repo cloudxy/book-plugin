@@ -1,12 +1,15 @@
 #!/bin/sh
-# 私有内容守卫：书稿原文、蒸馏产物与可重建运行件绝不进仓库（.gitignore 之外再兜一道）
-blocked='books .work .venv tools .dsh'
+# 私有内容守卫：书稿原文、蒸馏产物与可重建运行件绝不进仓库（.gitignore 之外再兜一道）。
+# 只拦「进入」（新增/修改/重命名的新路径），放行删除（D）——移除私有内容不该被自己拦下。
+blocked='books .work .venv tools .dsh .zcode/plans'
 fail=0
-for f in $(git diff --cached --name-only); do
+while IFS= read -r f; do
   for b in $blocked; do
     case "$f" in
       "$b"|"$b"/*) echo "🔴 拦截：$f 属私有/可重建内容（$b/）——已列入 .gitignore，勿提交"; fail=1 ;;
     esac
   done
-done
+done <<PATHS
+$(git diff --cached --name-status | awk '$1 !~ /^D/ {print $NF}')
+PATHS
 exit $fail

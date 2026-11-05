@@ -71,4 +71,4 @@ Codex 若显示插件命名空间，按 `/skills` 中的完整名称调用，例
 
 ## 私有内容（硬约束）
 
-书稿原文、蒸馏产物与审计任务是使用数据，**不进远端仓库**：`books/`、`.work/`、`.venv/`、`tools/`、`.dsh/` 已在 `.gitignore`/`.zcodeignore` 忽略（tools/.dsh 可由 bootstrap 重建）。
+书稿原文、蒸馏产物与审计任务是使用数据，**不进远端仓库**：`books/`、`.work/`、`.venv/`、`tools/`、`.dsh/`、`.zcode/plans/` 已在 `.gitignore`/`.zcodeignore` 忽略（tools/.dsh 可由 bootstrap 重建；.zcode/plans 为本机会话过程产物）。

@@ -10,6 +10,7 @@ books/
 .work/
 tools/
 .dsh/
+.zcode/plans/
 
 .git/
 node_modules/
