@@ -24,8 +24,9 @@ def book_state(ws, book):
     if (book / "pipeline/state.json").is_file():
         from production import status as production_status
         current = production_status(book / "pipeline")
-        return {"slug": book.name, "tier": "L2", "l1_started": True, "l1_gates": "not-used",
-                "l2_started": "package" in current, "source_gates": current["status"], "production": current}
+        return {"slug": book.name, "tier": current.get("lifecycle", {}).get("target_tier", "L2"), "l1_started": True,
+                "l1_gates": "not-used", "l2_started": "package" in current, "source_gates": current["status"],
+                "lifecycle": current.get("lifecycle", {}).get("stage"), "production": current}
     task = slug(book.name)
     check_path = Path(ws) / ".work" / task / "l1-check.json"
     audit_path = Path(ws) / ".work" / task / "thinking-audit.json"
@@ -42,8 +43,17 @@ def next_action(state):
         if current["status"] == "stale-source":
             return "production.py sync 后续跑，旧包保留"
         if current["status"] == "built-pending-runtime":
-            return "production_eval.py：实际运行并独立评审；通过后 skill_portfolio.py 登记/导出"
-        return "production.py run/resume：" + ", ".join(current.get("ready", []))
+            return "production.py evaluate/cycle：实际运行并独立评审；失败按归因定向返修"
+        if current["status"] == "tested-trial":
+            return "production.py deliver：登记并导出被测原包及组合清单"
+        if current["status"] == "delivered":
+            return "已交付试用 Skill；production.py record 生成分项交付记录"
+        if current["status"] == "material-ready":
+            return "L1 材料就绪（不是 Skill）；需要 Skill 时以 L2 目标新建产线"
+        if current["status"] == "blocked":
+            return "已隔离缺口：" + "; ".join(b["reason"] for b in current["lifecycle"]["blocked"])[:200]
+        waiting = [b["task_id"] for b in current.get("backoff", [])]
+        return "production.py run/resume：" + ", ".join(current.get("ready", []) + [f"{t}(退避中)" for t in waiting])
     if state["tier"] is None:
         return "保留原任务合同；新产线用 production.py init 登记档位/对象，不修改旧状态"
     if not state["l1_started"]:

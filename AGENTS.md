@@ -1,6 +1,6 @@
 # AGENTS.md — book-workflow 工作区
 
-book-workflow：知识蒸馏闭环工作流插件，v0.5.1。**双主线：按用途蒸馏书籍/人物 Skill；编排调度完整阅读、综合、复核、实测、恢复与组合清单交付。** 不涉及模型参数训练。正式作者分身继续按既有完整构思、习惯与路径联合重建及验收合同运行。程序能力继续由 cangjie-skill 生成、dsh 三闸+图件闸核验；svg-diagram 负责房规 SVG。html-css-to-image 0.4.0 源码快照 可选，无密钥不调用、不进四闸。本目录是插件开发现场，skills/commands/bridge/vendor 只在这里更新；zcode 经 `~/.zcode/cli/config.json` 的 `plugins.dirs` 直接加载。上游 https://github.com/cloudxy/book-plugin 是唯一共同源；其他机器克隆、注册并 git pull 后开新会话加载更新。
+book-workflow：知识蒸馏闭环工作流插件，v0.5.2。**双主线：按用途蒸馏书籍/人物 Skill；编排调度完整阅读、综合、复核、实测、恢复与组合清单交付。** 不涉及模型参数训练。正式作者分身继续按既有完整构思、习惯与路径联合重建及验收合同运行。程序能力继续由 cangjie-skill 生成、dsh 三闸+图件闸核验；svg-diagram 负责房规 SVG。html-css-to-image 0.4.0 源码快照 可选，无密钥不调用、不进四闸。本目录是插件开发现场，skills/commands/bridge/vendor 只在这里更新；zcode 经 `~/.zcode/cli/config.json` 的 `plugins.dirs` 直接加载。上游 https://github.com/cloudxy/book-plugin 是唯一共同源；其他机器克隆、注册并 git pull 后开新会话加载更新。
 
 ## 目录
 
@@ -58,7 +58,7 @@ Codex 若显示插件命名空间，按 `/skills` 中的完整名称调用，例
 - **单一事实源**：skills/commands/bridge/vendor 只在本目录改；五端挂载点全是软链或清单，改完即更新，无副本同步。
 - **同步走 GitHub**：上游 `cloudxy/book-plugin`；改动 `git pull → commit → push`（pre-commit 钩子兜底拦截私有内容）。其他机器是否克隆、克隆到哪里，由各机器自定。
 - **vendor 升级**：替换 `vendor/<名>/` → 递增 `.zcode-plugin/plugin.json` 等四份清单版本与 SKILL.md 的 `vendors:` 登记 → `make doctor && make e2e` 回归。
-- **回归**：`make e2e`（unittest discover 全量：闸门 e2e + thinking/persona/pipeline/production/vendor 合同 + 覆盖映射闸）+ `make doctor`。合成结构测试不能冒充真实书籍或人物 Skill 的效果通过；真实产物及验收记录留私有目录。测试分层、不变量与决策记录见 [docs/designs/testing/test-architecture.md](docs/designs/test-architecture.md)；新增 bridge 模块须同步 `tests/COVERAGE.md`，否则 `make e2e` 红。
+- **回归**：`make e2e`（unittest discover 全量：闸门 e2e + thinking/persona/pipeline/production/vendor 合同 + 覆盖映射闸）+ `make doctor`。合成结构测试不能冒充真实书籍或人物 Skill 的效果通过；真实产物及验收记录留私有目录。测试分层、不变量与决策记录见 [docs/designs/testing/test-architecture.md](docs/designs/testing/test-architecture.md)；新增 bridge 模块须同步 `tests/COVERAGE.md`，否则 `make e2e` 红。
 
 ### vendor 许可证（再分发边界）
 

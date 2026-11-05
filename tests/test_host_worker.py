@@ -34,13 +34,20 @@ if mode == "fail":
     sys.stderr.write("synthetic CLI failure")
     raise SystemExit(3)
 target = argv[argv.index("--output-last-message") + 1]
+project = argv[argv.index("--cd") + 1]
+record["project_files"] = sorted(os.path.relpath(os.path.join(r, f), project) for r, _, fs in os.walk(project) for f in fs)
+record["prompt"] = sys.stdin.read()
+json.dump(record, open(os.path.join(here, "argv-record.json"), "w", encoding="utf-8"))
 open(target, "w", encoding="utf-8").write(json.dumps(
     {"covered_units": ["u1"], "findings": "synthetic observation",
      "limitations": [], "open_connections": []}))
-sys.stdin.read()
 print("not-json-noise")
 print(json.dumps({"type": "thread.started", "thread_id": "th-syn-1"}))
-print(json.dumps({"type": "item.completed", "item": {"type": "command_execution"}}))
+if mode == "host":
+    print(json.dumps({"type": "item.completed", "item": {"type": "command_execution",
+          "command": "bash -lc 'cat .agents/skills/demo/SKILL.md && cat .agents/skills/demo/references/abilities.md'"}}))
+else:
+    print(json.dumps({"type": "item.completed", "item": {"type": "command_execution"}}))
 print(json.dumps({"type": "turn.completed", "usage": {"total_tokens": 42}}))
 '''
 
@@ -82,6 +89,24 @@ class HostWorkerEnvelope(unittest.TestCase):
         record = self.record()
         self.assertTrue(record["schema_attached"])
         self.assertIn("examples", record["schema"]["properties"])   # synthesize 合同含 examples
+
+    def test_host_loading_installs_skill_without_inlining_it(self):
+        self.set_mode("host")
+        skill = self.ws / "run" / "relocated" / "skill"
+        (skill / "references").mkdir(parents=True)
+        (skill / "SKILL.md").write_text("---\nname: demo\n---\nSECRET-INLINE-MARKER", encoding="utf-8")
+        (skill / "references" / "abilities.md").write_text("abilities", encoding="utf-8")
+        packet = {"loading": "host", "skill_dir": "relocated/skill", "skill_name": "demo", "instruction": "answer",
+                  "conversation": [{"role": "user", "content": "question"}]}
+        result = subprocess.run([sys.executable, "-B", str(HOST_WORKER)], input=json.dumps(packet), text=True,
+                                capture_output=True, env=self.env, cwd=self.ws / "run")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        envelope = json.loads(result.stdout)
+        self.assertEqual(envelope["executor"]["observed_reads"], ["SKILL.md", "references/abilities.md"])
+        record = self.record()
+        self.assertIn(".agents/skills/demo/SKILL.md", record["project_files"])
+        self.assertNotIn("SECRET-INLINE-MARKER", record["prompt"])
+        self.assertNotIn("relocated/skill", record["prompt"])
 
     def test_unknown_stage_sends_no_schema(self):
         self.set_mode("ok")

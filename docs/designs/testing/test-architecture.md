@@ -9,7 +9,7 @@
 |---|---|
 | 防假绿 | 每个闸门至少有一个负向用例证明它"会红"：篡改引文、删 R 层引用、错配日期、漂移 sha、坏图、缺引用图 |
 | 隔离 | 任何测试不写仓库 `.work/`、不改 `tests/fixtures/`；整套可并发双跑 |
-| 速度 | `make e2e` < 30s（2026-11 实测 97 项约 13s） |
+| 速度 | 合同层单项秒级；`make e2e` 2026-11 实测 97 项约 13s，0.5.2 加入假命令执行器驱动的单书循环与退避运行器后约 80s。超时以子进程启动为主，单书循环一项约 15s；需要更快的反馈时用 `-k` 分项 |
 | 缺口可见 | bridge 新增模块不登记测试 ⇒ `make e2e` 红（覆盖映射闸） |
 | 多机零手工 | git pull 后仅靠 `scripts/bootstrap.py` 即可跑全量；无测试框架依赖 |
 | 不冒充验收 | 全部用合成素材；结构绿 ≠ 真书/真人 Skill 验收通过（AGENTS.md 判态口径不变） |
@@ -21,6 +21,7 @@ tests/
 ├── test_*_contracts.py   单元合同层：进程内直调 bridge 模块，变异驱动（thinking/persona/pipeline/production）
 ├── test_gates_e2e.py     集成闸门层：桥接→判态→6 组负向→恢复全绿，一条共享状态的连环用例
 ├── test_vendor_regressions.py  vendor 层：固定提交的行为回归（不改其源码）
+├── test_production_loop.py  单书循环层：假命令执行器驱动 run→evaluate→归因→返修→复评→交付；抽查返修、档位、正文边界与定位
 ├── test_*（模块级）      缺口补测层：host_worker/batch_runner/workflow_optimizer/worker_schema/render_html_image
 ├── test_coverage_map.py  映射合同：强制 COVERAGE.md 与 bridge/ 对齐（双向）
 ├── support/              共享脚手架：合成原文/条目/评审记录/闸门工作区装配

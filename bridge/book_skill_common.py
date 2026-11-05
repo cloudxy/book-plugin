@@ -189,9 +189,15 @@ def markdown_records(body):
     return records
 
 
+# 0.4.0 interpreter/build dependencies. The 0.5 production modules are excluded so new-line
+# changes cannot alter the provenance of formal candidates (e.g. the Mao L3 task).
+LEGACY_ENGINE = ("author_persona.py", "book_skill_common.py", "build_book_skill.py", "cangjie_to_dsh.py",
+                 "check_diagrams.py", "eval_book_skill.py", "render_html_image.py", "run_audit.py", "thinking_audit.py")
+
+
 def engine_hash():
     root = Path(__file__).parent
-    return digest({p.name: digest(p.read_bytes()) for p in sorted(root.glob("*.py"))})
+    return digest({name: digest((root / name).read_bytes()) for name in LEGACY_ENGINE})
 
 
 def verify_package(root):

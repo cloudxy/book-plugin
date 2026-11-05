@@ -1,6 +1,6 @@
 # book-workflow
 
-book-workflow 0.5.1 沿两条主线工作：**蒸馏**完整阅读书籍或人物材料，按用途生成知识、思想、叙事或表达 Skill；**编排与调度**管理任务依赖、并发、上下文、预算、恢复和定向返修。使用现有模型，不训练模型参数。交付可迁移的被测原包及中立组合清单，写作侧自行调用和组合。
+book-workflow 0.5.2 沿两条主线工作：**蒸馏**完整阅读书籍或人物材料，按用途生成知识、思想、叙事或表达 Skill；**编排与调度**管理任务依赖、并发、上下文、预算、恢复和定向返修。使用现有模型，不训练模型参数。交付可迁移的被测原包及中立组合清单，写作侧自行调用和组合。
 
 新任务按用途进入0.5试用生产线；正式作者分身、现有 book-skill/1、book-skill/2 和程序四闸继续保持原合同，不因版本更新自动升格。源文全文进入阅读任务，逐字摘引可选；内容哈希不能证明模型已理解。人物包注明材料范围与时期，知识包不强制作者口吻。新生产入口见 [蒸馏与调度操作说明](skills/book-workflow/references/production.md)。
 
@@ -22,7 +22,7 @@ flowchart LR
 
 本仓库既是工作区，也是插件开发现场。共同源为 [cloudxy/book-plugin](https://github.com/cloudxy/book-plugin)，五端共用仓内源文件，改完开新会话刷新。接入、许可证与维护纪律见 [AGENTS.md](AGENTS.md)。
 
-0.5 CLI：`bridge/production.py init/run/status/sync/claim/collect/retry`；宿主命令通过私有 JSON argv 配置。`bridge/host_worker.py` 可调用现有 Codex CLI；无命令执行器时由当前宿主 claim/collect，明确为协助执行。构建完成保持待实测，`production_eval.py` 独立采集/评审后，`skill_portfolio.py` 才能导出已测 Skill。原 `l1_extract.py` / `export_portfolio.py` 保留为旧素材实验兼容，不是本次交付入口。
+0.5 CLI：`bridge/production.py init/run/status/sync/claim/collect/retry/policy/unblock`，以及 `evaluate/cycle/attach/repair/deliver/metrics/failures/record`；宿主命令通过私有 JSON argv 配置。`bridge/host_worker.py` 可调用现有 Codex CLI；无命令执行器时由当前宿主 claim/collect，明确为协助执行。构建完成后仍待实测：评测失败按归因退回阅读或综合定向返修，通过后 `deliver` 才导出已测 Skill 及组合清单；`metrics` 与 `record` 分项记录产能和交付证据。阶段模块、体裁模板与用途资产见 `skills/book-workflow/references/production-modules.json`。原 `l1_extract.py` / `export_portfolio.py` 保留为旧素材实验兼容，不是本次交付入口。
 
 ## 五端使用
 
@@ -101,7 +101,7 @@ make e2e                 # unittest discover 全量：闸门 e2e + 思想/作者
                          # 合成测试不代表真人作者效果；测试架构见 docs/designs/testing/test-architecture.md
 ```
 
-依赖固定提交及发布渠道见 [`vendor/UPSTREAM.json`](vendor/UPSTREAM.json)，本次变更见 [0.5.1 更新记录](docs/releases/0.5.1.md)。HTML 客户端 0.4.0 是固定提交的源码快照，安装使用随包 wheel；自举会升级已安装的旧版。上游测试另需 `jsonschema`：
+依赖固定提交及发布渠道见 [`vendor/UPSTREAM.json`](vendor/UPSTREAM.json)，本次变更见 [0.5.2 更新记录](docs/releases/0.5.2.md)，依赖更新见 [0.5.1 记录](docs/releases/0.5.1.md)。HTML 客户端 0.4.0 是固定提交的源码快照，安装使用随包 wheel；自举会升级已安装的旧版。上游测试另需 `jsonschema`：
 
 ```bash
 .venv/bin/python -m pip install 'jsonschema>=4,<5'

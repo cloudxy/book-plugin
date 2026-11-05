@@ -2,7 +2,7 @@ PY := .venv/bin/python
 CANGJIE := vendor/cangjie-skill/scripts/cangjie.py
 SVG_LINT := vendor/svg-diagram/tools/svg-lint/bin/svg-lint.mjs
 
-.PHONY: doctor gates-selftest e2e thinking-test pipeline-test production-test vendor-test production-run production-status production-sync portfolio bridge audit compile thinking-audit candidate eval-report publish lint-svg new-book
+.PHONY: doctor gates-selftest e2e thinking-test pipeline-test production-test vendor-test production-run production-status production-cycle production-metrics production-sync portfolio bridge audit compile thinking-audit candidate eval-report publish lint-svg new-book
 
 doctor: gates-selftest
 	@$(PY) $(CANGJIE) doctor
@@ -43,6 +43,14 @@ production-run:
 production-status:
 	@test -n "$(RUN)" || (echo "用法: make production-status RUN=books/<slug>/pipeline"; exit 2)
 	@$(PY) bridge/production.py status --root "$(RUN)"
+
+production-cycle:
+	@test -n "$(RUN)" && test -n "$(WORKER)" && test -n "$(SUITE)" && test -n "$(CONTEXT)" || (echo "用法: make production-cycle RUN=books/<slug>/pipeline WORKER=<argv.json> SUITE=<suite.json> CONTEXT=<source-context.json>"; exit 2)
+	@$(PY) bridge/production.py cycle --root "$(RUN)" --worker "$(WORKER)" --suite "$(SUITE)" --source-context "$(CONTEXT)"
+
+production-metrics:
+	@test -n "$(RUN)" || (echo "用法: make production-metrics RUN=books/<slug>/pipeline"; exit 2)
+	@$(PY) bridge/production.py metrics --root "$(RUN)"
 
 production-sync:
 	@test -n "$(RUN)" || (echo "用法: make production-sync RUN=books/<slug>/pipeline"; exit 2)

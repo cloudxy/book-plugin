@@ -40,7 +40,10 @@ class BatchRunnerProductionState(unittest.TestCase):
 
     def test_next_action_production_branches(self):
         self.assertIn("sync", next_action({"production": {"status": "stale-source"}}))
-        self.assertIn("production_eval.py", next_action({"production": {"status": "built-pending-runtime"}}))
+        self.assertIn("production.py evaluate", next_action({"production": {"status": "built-pending-runtime"}}))
+        self.assertIn("deliver", next_action({"production": {"status": "tested-trial"}}))
+        self.assertIn("不是 Skill", next_action({"production": {"status": "material-ready"}}))
+        self.assertIn("已隔离缺口", next_action({"production": {"status": "blocked", "lifecycle": {"blocked": [{"reason": "gap"}]}}}))
         self.assertEqual(next_action({"production": {"status": "pending", "ready": ["read", "merge"]}}),
                          "production.py run/resume：read, merge")
 

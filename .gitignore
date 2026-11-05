@@ -10,3 +10,4 @@ books/
 .work/
 tools/
 .dsh/
+.tests/

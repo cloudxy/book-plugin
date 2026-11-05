@@ -10,4 +10,4 @@ Follow the `book-workflow` skill, **只核查已有材料与记录，并按所�
 
 $ARGUMENTS
 
-有 `pipeline/state.json` 的0.5任务：用 `production.py status` 核查输入/依赖状态，`distill_skill.py <包路径>` 核查包，已有评测用 `production_eval.py report --run <评测目录>`；组合包用 `skill_portfolio.py verify <目录>`。只检查已有结果，不调用run、claim或自动修复。待阅读、待语义复核、待实测分别列出，机器字段通过不改称语义通过。
+有 `pipeline/state.json` 的0.5任务：用 `production.py status` 核查输入/依赖状态、生命周期与阻塞缺口（status 只刷新不执行），`production.py metrics/failures` 查看产能与按阶段归类的失败，`distill_skill.py <包路径>` 核查包，已有评测用 `production_eval.py report --run <评测目录>`；组合包用 `skill_portfolio.py verify <目录>`。只检查已有结果，不调用run、claim或自动修复。待阅读、待语义复核、待实测分别列出，机器字段通过不改称语义通过。
